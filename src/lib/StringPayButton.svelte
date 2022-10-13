@@ -1,6 +1,6 @@
 <script lang='ts'>
-  	import type { StringPayload } from '$lib';
-	import { StringPay } from '$lib/StringPay' 
+  	import type { StringPayload } from '$lib/StringPay';
+	import StringPay from '$lib/StringPay' 
 
 	export let payload: StringPayload;
 

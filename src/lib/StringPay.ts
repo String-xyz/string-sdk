@@ -1,4 +1,4 @@
-import { registerEvents, sendEvent, Events } from '$lib/events';
+import { registerEvents } from '$lib/events';
 
 export interface StringPayload {
 	name: string;
@@ -16,28 +16,33 @@ export interface StringPayload {
 	txValue: string;
 }
 
-const PUBLIC_IFRAME_URL = "http://localhost:4040"
+export interface StringInitArgs {
+	apiKey: string
+}
+
+import { PUBLIC_IFRAME_URL } from '$env/static/public';
 
 const err = (msg: string) => {
 	console.error("[String Pay] " + msg)
 }
 
-let apikey: string;
-let frame: HTMLIFrameElement;
-let payload: StringPayload;
+class StringPay {
+	#apiKey?: string;
+	container?: Element;
+	frame?: HTMLIFrameElement;
+	payload?: StringPayload;
+	isLoaded = false;
 
-
-export const StringPay = {
-	init: (args: any) => {
+	init(args: StringInitArgs) {
 		if (!args?.apiKey) {
-			err("Invalid String API Key passed to init function")
+			err("Invalid String API key passed to init function")
 			return;
 		}
 
-		apikey = args?.apiKey;
-	},
-	loadFrame: (_payload: StringPayload) => {
-		if (!apikey) {
+		this.#apiKey = args?.apiKey;
+	}
+	loadFrame(payload: StringPayload) {
+		if (!this.#apiKey) {
 			err("You must initialize with your API key first");
 			return;
 		}
@@ -52,31 +57,26 @@ export const StringPay = {
 			container.removeChild(container.firstChild);
 		}
 
-		if (!_payload) {
+		this.container = container;
+
+		if (!payload) {
 			err("No payload specified")
 			return;
 		}
 
-		payload = _payload
-
+		this.payload = payload;
 
 		registerEvents();
 
 		const iframe = document.createElement('iframe');
-		iframe.style.width = "100vw";
-		iframe.style.height = "100vh";
+		iframe.style.width = "374px";
+		iframe.style.height = "700px";
 
 		iframe.src = PUBLIC_IFRAME_URL;
 		container.appendChild(iframe);
-		frame = iframe;
-
-		frame.onload = () => {
-			container.setAttribute("data-loaded", "true")
-			sendEvent(frame, Events.INIT, payload);
-		}
-	},
+		this.frame = iframe;
+	}
 }
 
-// window.StringPay = StringPay;
-
+export default new StringPay();
 

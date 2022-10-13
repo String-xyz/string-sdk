@@ -1,12 +1,11 @@
 <script>
 	import StringPayButton from "$lib/StringPayButton.svelte";
-	import { StringPay } from '$lib/StringPay';
-	import { onMount } from 'svelte';
-
+	import StringPay from '$lib/StringPay';
+	import "../app.css";
 	const userAddr = "0x41e11ff9f71f51800f67cb913ea6bc59d3f126aa"
 
 	StringPay.init({
-		apiKey: "xd"
+		apiKey: "test"
 	});
 
 	const payload = {
@@ -27,7 +26,7 @@
 
 </script>
 
-<div class="">
+<div>
 	<StringPayButton {payload} />
 	<div class="string-pay-frame" />
 </div>
