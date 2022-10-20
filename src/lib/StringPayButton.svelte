@@ -1,10 +1,18 @@
 <script lang='ts'>
-  	import type { StringPayload } from '$lib/StringPay';
-	import StringPay from '$lib/StringPay' 
-
+  	import type { StringPay, StringPayload } from '$lib/StringPay';
+	import { onMount } from 'svelte'
+	
 	export let payload: StringPayload;
 
-	const init = (payload: any) => {
+	let StringPay: StringPay;
+
+	onMount(() => {
+		if (!StringPay) {
+			StringPay = window.StringPay
+		}
+	});
+
+	const init = (payload: StringPayload) => {
 		StringPay.loadFrame(payload);
 	}
 </script>

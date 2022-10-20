@@ -20,13 +20,31 @@ export interface StringInitArgs {
 	apiKey: string
 }
 
-import { PUBLIC_IFRAME_URL } from '$env/static/public';
+const IFRAME_URL = import.meta.env.VITE_IFRAME_URL
 
 const err = (msg: string) => {
 	console.error("[String Pay] " + msg)
 }
 
-class StringPay {
+const userAddr = import.meta.env.VITE_TEST_ADDRESS ?? "0x000000"
+
+export const testPayload: StringPayload = {
+	name: "String Demo NFT",
+	collection: "String Demo",
+	imageSrc: "https://gateway.pinata.cloud/ipfs/bafybeibtmy26mac47n5pp6srds76h74riqs76erw24p5yvdhmwu7pxlcx4/STR_Logo_1.png",
+	imageAlt: "NFT",
+	currency: "AVAX",
+	price: 0.08,
+	chainID: 43113,
+	userAddress: userAddr,
+	contractAddress: "0x41e11ff9f71f51800f67cb913ea6bc59d3f126aa",
+	contractABI: ['function getOwnedIDs(address owner) view returns (uint256[])', 'function tokenURI(uint256 tokenId) view returns (string)'],
+	contractFunction: 'mintTo',
+	contractParameters: [userAddr],
+	txValue: (0.08 * 1e18).toString()
+}
+
+export class StringPay {
 	#apiKey?: string;
 	container?: Element;
 	frame?: HTMLIFrameElement;
@@ -64,19 +82,25 @@ class StringPay {
 			return;
 		}
 
+		if (!IFRAME_URL) {
+			err("IFRAME_URL not specified")
+			return;
+		}
+
 		this.payload = payload;
 
 		registerEvents();
 
 		const iframe = document.createElement('iframe');
-		iframe.style.width = "374px";
+		iframe.style.width = "100%";
 		iframe.style.height = "700px";
+		iframe.style.overflow = "none";
 
-		iframe.src = PUBLIC_IFRAME_URL;
+		iframe.src = IFRAME_URL;
 		container.appendChild(iframe);
 		this.frame = iframe;
 	}
 }
 
-export default new StringPay();
+(<any>window).StringPay = new StringPay()
 

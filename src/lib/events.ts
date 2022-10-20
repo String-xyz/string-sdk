@@ -1,22 +1,23 @@
-import StringPay from './StringPay'
-
 const CHANNEL = "STRING_PAY"
-
 
 interface StringEvent {
 	eventName: string;
 	data?: any;
 }
 
+const err = (msg: string) => {
+	console.error("[String Pay] " + msg)
+}
+
 export enum Events {
 	IFRAME_READY = "ready",
 	INIT = "init",
+	RESIZE = "resize",
 }
 
 export const sendEvent = (frame: HTMLIFrameElement, eventName: string, data: any) => {
     if (!frame) {
-        console.error("string-pay-frame element not found");
-        throw new Error("string-pay-frame element not found");
+        err("sendEvent was not sent a frame")
     }
 
     const message = JSON.stringify({
@@ -24,16 +25,13 @@ export const sendEvent = (frame: HTMLIFrameElement, eventName: string, data: any
         event: { eventName, data },
     });
 
-	console.log("message", message)
-
     frame.contentWindow?.postMessage(message, '*');
 }
 
 export const registerEvents = () => {
 	window.addEventListener('message', function (e) {
 		if (e.data?.data?.name) return;
-		console.log("On String SDK side ", e)
-
+		
 		try {
 			const payload = JSON.parse(e.data);
 			const channel = payload.channel;
@@ -48,16 +46,25 @@ export const registerEvents = () => {
 }
 
 export const handleEvent = (event: StringEvent) => {
-	console.log("Event received", event);
+	const frame = window?.StringPay?.frame;
+	const payload = window?.StringPay?.payload;
+
+	if (!frame || !payload) {
+		err("Cannot find frame or payload")
+		return;
+	}
+
 	switch (event.eventName) {
 		case Events.IFRAME_READY:
-			if (!StringPay.frame || !StringPay.payload) {
-				console.log("no frame/payload")
-				break;
+			sendEvent(frame, Events.INIT, payload);
+			window.StringPay.isLoaded = true;
+		break;
+
+		case Events.RESIZE:
+			if (event.data?.height != frame.scrollHeight) {
+				frame.style.height = (event.data?.height ?? frame.scrollHeight) + "px";
 			}
+		break;
 
-			StringPay.isLoaded = true
-
-			sendEvent(StringPay.frame, Events.INIT, StringPay.payload);
 	}
 }
