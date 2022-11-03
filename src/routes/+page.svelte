@@ -4,16 +4,13 @@
 	import { onMount } from 'svelte'
 	import "../app.css";
 
-	let StringPay: StringPay;
+	// let StringPay: StringPay;
 
-	onMount(() => {
-		if (!StringPay) {
-			StringPay = window.StringPay
-			StringPay.init({
-				apiKey: "test"
-			});
-		}
-	});
+	// onMount(() => {
+	// 	if (!StringPay) {
+	// 		StringPay = window.StringPay
+	// 	}
+	// });
 
 </script>
 

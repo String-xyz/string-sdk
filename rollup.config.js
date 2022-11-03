@@ -10,27 +10,27 @@ config();
 const prod = !process.env.ROLLUP_WATCH;
 
 export default {
-  input: 'package/index.js',
-  output: {
-	name: "string_sdk",
-	file: 'build/svelte-sdk.min.js',
-	sourcemap: true,
-    format: 'iife',
-  },
-  plugins: [
-	replace({
-		values: {
-			'import.meta.env.VITE_IFRAME_URL': JSON.stringify(process.env.VITE_IFRAME_URL)
-		},
-		preventAssignment: true
-	}),
-	svelte(),
-    resolve(),
-	commonjs(),
-	prod && terser(),
-	analyze()
-  ],
-  watch: {
-	clearScreen: false
-  }
+	input: 'package/index.js',
+	output: {
+		name: "string_sdk",
+		file: 'build/svelte-sdk.min.js',
+		sourcemap: true,
+		format: 'iife',
+	},
+	plugins: [
+		replace({
+			values: {
+				'import.meta.env.VITE_IFRAME_URL': JSON.stringify(process.env.VITE_IFRAME_URL)
+			},
+			preventAssignment: true
+		}),
+		svelte(),
+		resolve(),
+		commonjs(),
+		prod && terser(),
+		analyze()
+	],
+	watch: {
+		clearScreen: false
+	}
 };

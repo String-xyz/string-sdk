@@ -18,9 +18,9 @@ describe('Events.ts', () => {
 		expect(window.StringPay.isLoaded).toBeTruthy()
 	});
 
-	it('handles resize event', () => {
+	it('handles iframe_resize event', () => {
 		const height = 400
-		const event = { eventName: Events.RESIZE, data: {height} }
+		const event = { eventName: Events.IFRAME_RESIZE, data: {height} }
 
 		handleEvent(event)
 

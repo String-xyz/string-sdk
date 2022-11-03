@@ -1,6 +1,7 @@
 import { registerEvents } from '$lib/events';
 
 export interface StringPayload {
+	apiKey: string;
 	name: string;
 	collection: string;
 	currency: string;
@@ -10,14 +11,10 @@ export interface StringPayload {
 	chainID: number;
 	userAddress: string;
 	contractAddress: string;
-	contractABI: string[],
 	contractFunction: string;
+	contractReturn: string,
 	contractParameters: string[];
 	txValue: string;
-}
-
-export interface StringInitArgs {
-	apiKey: string
 }
 
 const IFRAME_URL = import.meta.env.VITE_IFRAME_URL
@@ -27,8 +24,10 @@ const err = (msg: string) => {
 }
 
 const userAddr = import.meta.env.VITE_TEST_ADDRESS ?? "0x000000"
+const apiKey = import.meta.env.VITE_STRING_API_KEY
 
 export const testPayload: StringPayload = {
+	apiKey,
 	name: "String Demo NFT",
 	collection: "String Demo",
 	imageSrc: "https://gateway.pinata.cloud/ipfs/bafybeibtmy26mac47n5pp6srds76h74riqs76erw24p5yvdhmwu7pxlcx4/STR_Logo_1.png",
@@ -38,33 +37,20 @@ export const testPayload: StringPayload = {
 	chainID: 43113,
 	userAddress: userAddr,
 	contractAddress: "0x41e11ff9f71f51800f67cb913ea6bc59d3f126aa",
-	contractABI: ['function getOwnedIDs(address owner) view returns (uint256[])', 'function tokenURI(uint256 tokenId) view returns (string)'],
-	contractFunction: 'mintTo',
+	contractFunction: "mintTo(address)",
+	contractReturn: "uint256",
 	contractParameters: [userAddr],
-	txValue: (0.08 * 1e18).toString()
+	txValue: "0.08 eth",
 }
 
 export class StringPay {
-	#apiKey?: string;
 	container?: Element;
 	frame?: HTMLIFrameElement;
 	payload?: StringPayload;
 	isLoaded = false;
-
-	init(args: StringInitArgs) {
-		if (!args?.apiKey) {
-			err("Invalid String API key passed to init function")
-			return;
-		}
-
-		this.#apiKey = args?.apiKey;
-	}
+	onframeload = () => {};
+	onframeclose = () => {};
 	loadFrame(payload: StringPayload) {
-		if (!this.#apiKey) {
-			err("You must initialize with your API key first");
-			return;
-		}
-		
 		const container = document.querySelector(".string-pay-frame");
 		if (!container) {
 			err("Unable to load String Frame, element 'string-pay-frame' does not exist");
@@ -78,12 +64,22 @@ export class StringPay {
 		this.container = container;
 
 		if (!payload) {
-			err("No payload specified")
+			err("No payload specified");
+			return;
+		}
+
+		if (!payload.apiKey) {
+			err("You must have an api key in your payload");
+			return;
+		}
+
+		if (payload.apiKey.slice(0, 4) !== "str.") {
+			err(`Invalid API Key: ${payload.apiKey}`);
 			return;
 		}
 
 		if (!IFRAME_URL) {
-			err("IFRAME_URL not specified")
+			err("IFRAME_URL not specified");
 			return;
 		}
 

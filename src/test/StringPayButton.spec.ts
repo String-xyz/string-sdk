@@ -15,13 +15,9 @@ describe('StringPayButton.svelte', () => {
 	it('loads iframe when clicked', async () => {
 		const container = document.createElement('div');
 		container.classList.add('string-pay-frame');
-        document.body.appendChild(container);
+		document.body.appendChild(container);
 
 		(<any>window).StringPay = new StringPay()
-
-		window.StringPay.init({
-			apiKey: "test"
-		});
 
 		render(StringPayButton, {payload: testPayload})
 		const button = screen.getByRole('button')
