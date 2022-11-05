@@ -36,7 +36,7 @@ export const testPayload: StringPayload = {
 	price: 0.08,
 	chainID: 43113,
 	userAddress: userAddr,
-	contractAddress: "0x41e11ff9f71f51800f67cb913ea6bc59d3f126aa",
+	contractAddress: "0x41e11fF9F71f51800F67cb913eA6Bc59d3F126Aa",
 	contractFunction: "mintTo(address)",
 	contractReturn: "uint256",
 	contractParameters: [userAddr],

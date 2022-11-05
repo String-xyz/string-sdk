@@ -11,7 +11,6 @@ const err = (msg: string) => {
 }
 
 export enum Events {
-	INIT = 'init',
 	LOAD_PAYLOAD = 'load_payload',
 	IFRAME_READY = 'ready',
 	IFRAME_RESIZE = 'resize',
