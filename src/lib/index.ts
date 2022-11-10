@@ -1,5 +1,5 @@
 import StringPayButton from './StringPayButton.svelte';
-import type { StringPayload, StringInitArgs } from './StringPay';
+import type { StringPayload } from './StringPay';
 import { StringPay } from './StringPay';
 
-export { StringPayButton, StringPay, type StringPayload, type StringInitArgs };
+export { StringPayButton, StringPay, type StringPayload };

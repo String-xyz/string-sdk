@@ -1,4 +1,5 @@
 const CHANNEL = "STRING_PAY"
+const IFRAME_URL = import.meta.env.VITE_IFRAME_URL
 
 interface StringEvent {
 	eventName: string;
@@ -10,9 +11,10 @@ const err = (msg: string) => {
 }
 
 export enum Events {
-	IFRAME_READY = "ready",
-	INIT = "init",
-	RESIZE = "resize",
+	LOAD_PAYLOAD = 'load_payload',
+	IFRAME_READY = 'ready',
+	IFRAME_RESIZE = 'resize',
+	IFRAME_CLOSE = 'close',
 }
 
 export const sendEvent = (frame: HTMLIFrameElement, eventName: string, data: any) => {
@@ -28,10 +30,41 @@ export const sendEvent = (frame: HTMLIFrameElement, eventName: string, data: any
     frame.contentWindow?.postMessage(message, '*');
 }
 
+export const handleEvent = (event: StringEvent) => {
+	const StringPay = (<any>window)?.StringPay
+	const frame = StringPay?.frame;
+	const payload = StringPay?.payload;
+
+	if (!frame || !payload) {
+		err("Cannot find frame or payload")
+		return;
+	}
+
+	switch (event.eventName) {
+		case Events.IFRAME_READY:
+			sendEvent(frame, Events.LOAD_PAYLOAD, payload);
+			StringPay.isLoaded = true;
+			StringPay.onframeload();
+		break;
+
+		case Events.IFRAME_CLOSE:
+			StringPay.isLoaded = false;
+			StringPay.onframeclose();
+		break;
+
+		case Events.IFRAME_RESIZE:
+			if (event.data?.height != frame.scrollHeight) {
+				frame.style.height = (event.data?.height ?? frame.scrollHeight) + "px";
+			}
+		break;
+
+	}
+}
+
 export const registerEvents = () => {
 	window.addEventListener('message', function (e) {
-		if (e.data?.data?.name) return;
-		
+		if (e.origin != IFRAME_URL) return;
+
 		try {
 			const payload = JSON.parse(e.data);
 			const channel = payload.channel;
@@ -43,28 +76,4 @@ export const registerEvents = () => {
 			console.log(error);
 		}
 	});
-}
-
-export const handleEvent = (event: StringEvent) => {
-	const frame = window?.StringPay?.frame;
-	const payload = window?.StringPay?.payload;
-
-	if (!frame || !payload) {
-		err("Cannot find frame or payload")
-		return;
-	}
-
-	switch (event.eventName) {
-		case Events.IFRAME_READY:
-			sendEvent(frame, Events.INIT, payload);
-			window.StringPay.isLoaded = true;
-		break;
-
-		case Events.RESIZE:
-			if (event.data?.height != frame.scrollHeight) {
-				frame.style.height = (event.data?.height ?? frame.scrollHeight) + "px";
-			}
-		break;
-
-	}
 }
