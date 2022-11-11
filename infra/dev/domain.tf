@@ -14,7 +14,7 @@ resource "aws_route53_record" "domain" {
 }
 
 module "web_app" {
-  source      = "../../acm"
+  source      = "../acm"
   domain_name = local.domain
   aws_region  = "us-east-1"
   zone_id     = data.aws_route53_zone.root.zone_id

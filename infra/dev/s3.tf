@@ -6,7 +6,7 @@ resource "aws_s3_bucket" "this" {
 }
 
 resource "aws_s3_bucket_policy" "policy" {
-  bucket = aws_s3_bucket.assets.id
+  bucket = aws_s3_bucket.this.id
   policy = local.web_policy_config_json
 }
 
