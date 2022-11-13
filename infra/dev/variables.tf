@@ -1,9 +1,9 @@
 locals {
   env         = "dev"
-  bucket_name = "js.dev.string-api.xyz"
-  sub_domain  = "js"
+  bucket_name = "cdn.dev.string-api.xyz"
+  sub_domain  = "cdn"
   origin_id   = "string-sdk"
-  domain      = "js.dev.string-api.xyz"
+  domain      = "cdn.dev.string-api.xyz"
   
   web_policy_config_json = jsonencode({
     "Version" : "2008-10-17",
