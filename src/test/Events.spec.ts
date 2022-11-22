@@ -1,4 +1,5 @@
-import { StringPay, testPayload } from '$lib';
+import { testPayload } from '$lib';
+import { StringPay } from '$lib/StringPay'
 import { handleEvent, Events } from '$lib/events';
 
 describe('Events.ts', () => {

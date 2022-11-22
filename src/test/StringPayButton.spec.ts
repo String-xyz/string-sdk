@@ -1,8 +1,6 @@
-import { render, fireEvent, screen } from '@testing-library/svelte'
-import { StringPay } from "$lib";
-
-import StringPayButton from '$lib/StringPayButton.svelte'
-import { testPayload } from '$lib/StringPay'
+import { render, fireEvent, screen } from '@testing-library/svelte';
+import { StringPay } from '$lib/StringPay'
+import { testPayload, StringPayButton } from '$lib';
 
 describe('StringPayButton.svelte', () => {
 	it('shows proper text when rendered', () => {
