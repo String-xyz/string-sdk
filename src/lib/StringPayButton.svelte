@@ -7,13 +7,15 @@
 	let StringPay: StringPay;
 
 	onMount(() => {
+		StringPay = window.StringPay
+		
 		if (!StringPay) {
-			StringPay = window.StringPay
+			console.error('[String Pay] Cannot find stringpay module in DOM')
 		}
 	});
 
 	const init = (payload: StringPayload) => {
-		StringPay.loadFrame(payload);
+		StringPay?.loadFrame(payload);
 	}
 </script>
 
