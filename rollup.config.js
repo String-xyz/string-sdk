@@ -1,33 +1,32 @@
 import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript'
 import analyze from 'rollup-plugin-analyzer';
-import svelte from 'rollup-plugin-svelte';
 import { terser } from 'rollup-plugin-terser';
 import replace from '@rollup/plugin-replace';
+
 import { config } from 'dotenv';
 config();
 
-const prod = !process.env.ROLLUP_WATCH;
+const version = process.env.npm_package_version
 
 export default {
-	input: 'package/index.js',
+	input: './src/lib/StringPay.ts',
 	output: {
-		name: "string_sdk",
-		file: 'build/svelte-sdk.min.js',
-		sourcemap: true,
+		name: 'stringpay',
+		file: `./dist/stringpay-v${version}.min.js`,
+		sourcemap: false,
 		format: 'iife',
 	},
 	plugins: [
+		typescript(),
 		replace({
 			values: {
 				'import.meta.env.VITE_IFRAME_URL': JSON.stringify(process.env.VITE_IFRAME_URL)
 			},
 			preventAssignment: true
 		}),
-		svelte(),
 		resolve(),
-		commonjs(),
-		prod && terser(),
+		terser(),
 		analyze()
 	],
 	watch: {

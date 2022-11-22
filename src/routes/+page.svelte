@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { StringPayButton } from "$lib";
-	import { testPayload as payload } from '$lib/StringPay'
+	import { StringPayButton, testPayload as payload } from '$lib';
 
 </script>
 

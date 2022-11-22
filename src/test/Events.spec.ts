@@ -1,6 +1,5 @@
-import { StringPay } from "$lib";
-import { handleEvent, Events } from '$lib/events'
-import { testPayload } from '$lib/StringPay'
+import { StringPay, testPayload } from '$lib';
+import { handleEvent, Events } from '$lib/events';
 
 describe('Events.ts', () => {
 	beforeEach(() => {
