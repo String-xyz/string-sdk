@@ -25,11 +25,11 @@ export default {
 			},
 			preventAssignment: true
 		}),
+		resolve(),
+		terser(),
 		copy({
 			targets: [{ src: 'src/lib/StringPay.d.ts', dest: './dist/', rename: 'index.d.ts' }]
 		}),
-		resolve(),
-		terser(),
 	],
 	watch: {
 		clearScreen: false
