@@ -1,12 +1,18 @@
 {
 	"name": "string-sdk",
 	"version": "0.0.1",
+	"private": "true",
+	"main": "./src/lib/index.ts",
+	"files": [
+		"/dist"
+	],
 	"scripts": {
 		"dev": "vite dev",
 		"package": "svelte-kit sync && svelte-package",
 		"bundle": "rollup -c",
-		"copy": "cp -R ./package/* ../web-app/node_modules/string-sdk && echo Copied to demo module",
-		"build": "svelte-kit sync && svelte-package && rollup -c && cp -R ./package/* ../web-app/node_modules/string-sdk && echo Copied to demo module",
+		"copy": "mkdir -p ../web-app/node_modules/string-sdk/ && cp ./dist/* ../web-app/node_modules/string-sdk/ && echo Copied to demo module",
+		"release": "yarn bundle && npm publish",
+		"release:demo": "yarn bundle && yarn copy",
 		"test:unit": "vitest run --coverage",
 		"coverage": "c8 report --check-coverage",
 		"test": "vitest",
@@ -37,9 +43,8 @@
 		"jsdom": "^20.0.1",
 		"postcss": "^8.4.16",
 		"rollup": "^3.1.0",
-		"rollup-plugin-analyzer": "^4.0.0",
+		"rollup-plugin-copy": "^3.4.0",
 		"rollup-plugin-dotenv": "^0.4.0",
-		"rollup-plugin-svelte": "^7.1.0",
 		"rollup-plugin-terser": "^7.0.2",
 		"svelte": "^3.44.0",
 		"svelte-check": "^2.7.1",
