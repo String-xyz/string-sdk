@@ -1,7 +1,6 @@
 {
 	"name": "@stringpay/sdk",
 	"version": "0.0.1",
-	"private": "false",
 	"main": "./src/lib/index.ts",
 	"files": [
 		"/dist"
