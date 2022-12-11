@@ -11,7 +11,6 @@
 		"package": "svelte-kit sync && svelte-package",
 		"bundle": "rollup -c",
 		"copy": "mkdir -p ../web-app/node_modules/string-sdk/ && cp ./dist/* ../web-app/node_modules/string-sdk/ && echo Copied to demo module",
-		"release": "yarn bundle && npm publish --access public",
 		"release:demo": "yarn bundle && yarn copy",
 		"test:unit": "vitest run --coverage",
 		"coverage": "c8 report --check-coverage",
