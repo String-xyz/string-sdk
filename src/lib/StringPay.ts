@@ -68,7 +68,7 @@ export class StringPay {
 		registerEvents();
 
 		const iframe = document.createElement('iframe');
-		iframe.style.width = "100%";
+		iframe.style.width = "100vh";
 		iframe.style.height = "700px";
 		iframe.style.overflow = "none";
 
