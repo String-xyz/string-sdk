@@ -1,7 +1,4 @@
-<span id="banner">
-  <img src="./static/favicon.png">
-  <span>String SDK</span>
-</span>
+# String SDK
 
 ![Version](https://img.shields.io/github/package-json/v/String-xyz/string-sdk)
 ![Downloads](https://img.shields.io/npm/dw/@stringpay/sdk)
@@ -49,18 +46,3 @@ The SDK's types can be imported if necessary. For example:
 ```ts
 import type { StringPayload } from '@stringpay/sdk';
 ```
-
-<style>
-
-  #banner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: .6em;
-    margin-bottom: .8em;
-    padding: .5em 1em;
-    font-size: 1.6em;
-    background-color: #605BFF;
-  }
-
-</style>
