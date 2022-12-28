@@ -1,9 +1,9 @@
 data "aws_route53_zone" "root" {
-  name = "string-api.xyz"
-}
+  name = local.domain 
+  }
 
 resource "aws_route53_record" "domain" {
-  name    = local.sub_domain
+  name    = local.domain
   type    = "A"
   zone_id = data.aws_route53_zone.root.zone_id
   alias {
