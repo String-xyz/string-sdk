@@ -1,7 +1,6 @@
 locals {
   env         = "prod"
   bucket_name = "cdn.string-api.xyz"
-  sub_domain  = "cdn"
   origin_id   = "string-sdk"
   domain      = "cdn.string-api.xyz"
   
