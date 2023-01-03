@@ -12,5 +12,6 @@ declare global {
 	// interface Platform {}
 	interface Window {
 		StringPay: StringPay;
+		ethereum: any;
 	}
 }

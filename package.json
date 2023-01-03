@@ -54,5 +54,7 @@
 		"vitest": "^0.24.3"
 	},
 	"type": "module",
-	"dependencies": {}
+	"dependencies": {
+		"ethers": "^5.7.2"
+	}
 }

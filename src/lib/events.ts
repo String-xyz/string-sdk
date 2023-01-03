@@ -1,5 +1,5 @@
 const CHANNEL = "STRING_PAY"
-const IFRAME_URL = import.meta.env.VITE_IFRAME_URL
+const IFRAME_URL = new URL(import.meta.env.VITE_IFRAME_URL).origin
 
 interface StringEvent {
 	eventName: string;
@@ -63,7 +63,7 @@ export const handleEvent = (event: StringEvent) => {
 
 export const registerEvents = () => {
 	window.addEventListener('message', function (e) {
-		if (e.origin != IFRAME_URL) return;
+		if (e.origin !== IFRAME_URL) return;
 
 		try {
 			const payload = JSON.parse(e.data);
