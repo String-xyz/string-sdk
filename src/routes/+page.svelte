@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { StringPayButton } from '$lib';
-    import { connect, walletAddress } from '$lib/wallet';
-    import { onMount } from 'svelte';
+	import { connect, walletAddress } from '$lib/wallet';
+	import { onMount } from 'svelte';
 
 	const apiKey = import.meta.env.VITE_STRING_API_KEY
 
@@ -25,7 +25,7 @@
 	onMount(async () => {
 		await connect();
 	});
-	
+
 </script>
 
 <div>

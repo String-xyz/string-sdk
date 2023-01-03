@@ -1,6 +1,7 @@
 import { render, fireEvent, screen } from '@testing-library/svelte';
 import { StringPay } from '$lib/StringPay'
-import { testPayload, StringPayButton } from '$lib';
+import { StringPayButton } from '$lib';
+import { testPayload } from './mock'
 
 describe('StringPayButton.svelte', () => {
 	it('shows proper text when rendered', () => {
