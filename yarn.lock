@@ -407,10 +407,10 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@fontsource/ubuntu@^4.5.11":
-  version "4.5.11"
-  resolved "https://registry.yarnpkg.com/@fontsource/ubuntu/-/ubuntu-4.5.11.tgz#71b75fda2f4b14aa20b39a7a3c8bc34c81fde609"
-  integrity sha512-c+B8A8r31hJLk8Ek7Svoz4GwjtInhc60LFM6XTr5TKtZbcct8TPNxJuKX4+hnqoWgcvy8s0Gj4mde4TcK/SgDQ==
+"@fontsource/lora@^4.5.12":
+  version "4.5.12"
+  resolved "https://registry.yarnpkg.com/@fontsource/lora/-/lora-4.5.12.tgz#3521f6dc87b7ee4e2685e31b9f7e510168ef9ef8"
+  integrity sha512-fOJN5nqvMbxu5P5AZnemQB8bSXUITRNuVN0u9x+19FG+GVarQrGeW1DtXEaX+hXCJjbYjOiQ3psYoa1nVJJk6A==
 
 "@humanwhocodes/config-array@^0.10.5":
   version "0.10.5"

@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte'
 	
 	export let payload: StringPayload;
+	export let disabled = false;
 
 	let StringPay: StringPay;
 
@@ -20,6 +21,14 @@
 </script>
 
 <button
-	class="btn btn-primary rounded border-2 normal-case"
+	class="btn btn-primary rounded border-2 tracking-wider text-white h-11"
+	{disabled}
 	on:click={() => init(payload)}>Mint with Card
 </button>
+
+<style>
+	.btn[disabled] {
+		background-color: #B6D5EC;
+		color: #FAF9F9;
+	}
+</style>

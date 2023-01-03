@@ -22,6 +22,8 @@
 		txValue: "0.08 eth",
 	}
 
+	$: disabled = !$walletAddress;
+	
 	onMount(async () => {
 		await connect();
 	});
@@ -29,6 +31,6 @@
 </script>
 
 <div>
-	<StringPayButton {payload} />
+	<StringPayButton {payload} {disabled} />
 	<div class="string-pay-frame" />
 </div>
