@@ -1,4 +1,4 @@
-import { testPayload } from '$lib';
+import { testPayload } from './mock'
 import { StringPay } from '$lib/StringPay'
 import { handleEvent, Events } from '$lib/events';
 

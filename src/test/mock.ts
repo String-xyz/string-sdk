@@ -1,6 +1,7 @@
+import type { StringPayload } from '../lib/StringPay';
+
 const apiKey = import.meta.env.VITE_STRING_API_KEY
-const userAddr = import.meta.env.VITE_TEST_ADDRESS ?? "0x000000"
-import type { StringPayload } from './StringPay';
+const userAddr = "0x000000"
 
 export const testPayload: StringPayload = {
 	apiKey,

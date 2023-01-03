@@ -4,23 +4,10 @@ module.exports = {
 		themes: [
 			{
 				stringTheme: {
-					primary: '#605BFF',
+					primary: '#006AB7',
+					secondary: '#F92572',
+					neutral: '#003669',
 
-					secondary: '#F000B8',
-
-					accent: '#37CDBE',
-
-					neutral: '#3D4451',
-
-					'base-100': '#FFFFFF',
-
-					info: '#3ABFF8',
-
-					success: '#36D399',
-
-					warning: '#FBBD23',
-
-					error: '#F87272'
 				}
 			}
 		]

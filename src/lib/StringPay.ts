@@ -57,6 +57,11 @@ export class StringPay {
 			err(`Invalid API Key: ${payload.apiKey}`);
 			return;
 		}
+		
+		if (!payload.userAddress) {
+			err("No user address found, please connect wallet")
+			return;
+		}
 
 		if (!IFRAME_URL) {
 			err("IFRAME_URL not specified");

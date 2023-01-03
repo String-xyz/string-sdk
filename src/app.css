@@ -1,8 +1,8 @@
-@import '@fontsource/ubuntu';
+@import '@fontsource/lora';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-	font-family: 'Ubuntu';
+	font-family: 'Lora';
 }
