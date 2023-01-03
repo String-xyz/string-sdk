@@ -10,8 +10,8 @@ export const connect = async () => {
     const accounts = await provider.send("eth_requestAccounts", []);
 
     provider.on('accountsChanged', (accounts) => {
-		walletAddress.set(accounts[0]);
+		walletAddress.set(ethers.utils.getAddress(accounts[0]));
     });
 
-	walletAddress.set(accounts[0]);
+	walletAddress.set(ethers.utils.getAddress(accounts[0]));
 }
