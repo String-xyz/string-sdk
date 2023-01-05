@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { StringPayButton } from '$lib';
-	import { connect, walletAddress } from '$lib/wallet';
+	import { defaultEvmStores, signerAddress } from 'svelte-ethers-store'
 	import { onMount } from 'svelte';
 
 	const apiKey = import.meta.env.VITE_STRING_API_KEY
@@ -14,20 +14,20 @@
 		currency: "AVAX",
 		price: 0.08,
 		chainID: 43113,
-		userAddress: $walletAddress,
+		userAddress: $signerAddress,
 		contractAddress: "0x41e11fF9F71f51800F67cb913eA6Bc59d3F126Aa",
 		contractFunction: "mintTo(address)",
 		contractReturn: "uint256",
-		contractParameters: [$walletAddress],
+		contractParameters: [$signerAddress],
 		txValue: "0.08 eth",
 	}
 
-	$: disabled = !$walletAddress;
-	
-	onMount(async () => {
-		await connect();
-	});
+	$: disabled = !$signerAddress;
 
+	onMount(() => {
+    	defaultEvmStores.setProvider();
+    }
+  )
 </script>
 
 <div>
