@@ -9,6 +9,10 @@ config();
 
 const version = process.env.npm_package_version
 
+if (!process.env.VITE_IFRAME_URL) {
+	throw Error("No VITE_IFRAME_URL found in .env")
+}
+
 export default {
 	input: './src/lib/StringPay.ts',
 	output: {
