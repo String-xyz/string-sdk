@@ -25,7 +25,7 @@ export default {
 		typescript(),
 		replace({
 			values: {
-				'import.meta.env.VITE_IFRAME_URL': JSON.stringify(new URL(process.env.VITE_IFRAME_URL).href)
+				'import.meta.env.VITE_IFRAME_URL': JSON.stringify(new URL(process.env.VITE_IFRAME_URL).origin)
 			},
 			preventAssignment: true
 		}),
