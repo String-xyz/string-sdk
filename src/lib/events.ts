@@ -51,6 +51,9 @@ export const handleEvent = (event: StringEvent) => {
 		case Events.IFRAME_CLOSE:
 			StringPay.isLoaded = false;
 			StringPay.onframeclose();
+
+			StringPay.frame.remove();
+			StringPay.frame = null;
 		break;
 
 		case Events.IFRAME_RESIZE:

@@ -25,6 +25,8 @@ const err = (msg: string) => {
 
 const watchWalletChange = (frame: HTMLIFrameElement) => {
 	window.ethereum.on('accountsChanged', () => {
+		if (!frame) return;
+		
 		sendEvent(frame, Events.UPDATE_USER)
 	})
 }
