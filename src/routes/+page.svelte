@@ -4,7 +4,7 @@
     import { writable } from 'svelte/store';
 	import { ethers } from 'ethers';
 
-	const apiKey = import.meta.env.VITE_STRING_API_KEY
+	const apiKey = import.meta.env.VITE_STRING_API_KEY;
 
 	const signerAddress = writable('');
 
@@ -32,12 +32,11 @@
 
 		signerAddress.set(ethers.utils.getAddress(accounts[0]));
 
-    	window.ethereum.on('accountsChanged', (accounts: any) => {
-			console.log('account changed to', accounts[0])
+		window.ethereum.on('accountsChanged', (accounts: any) => {
+			console.log('account changed to', accounts[0]);
 			signerAddress.set(ethers.utils.getAddress(accounts[0]));
-		})
-    }
-  )
+		});
+	});
 </script>
 
 <div>

@@ -1,5 +1,5 @@
 <script lang='ts'>
-  	import type { StringPay, StringPayload } from '$lib/StringPay';
+	import type { StringPay, StringPayload } from '$lib/StringPay';
 	import { onMount } from 'svelte'
 	
 	export let payload: StringPayload;
@@ -8,10 +8,10 @@
 	let StringPay: StringPay;
 
 	onMount(() => {
-		StringPay = window.StringPay
+		StringPay = window.StringPay;
 		
 		if (!StringPay) {
-			console.error('[String Pay] Cannot find stringpay module in DOM')
+			console.error("[String Pay] Cannot find stringpay module in DOM");
 		}
 	});
 
