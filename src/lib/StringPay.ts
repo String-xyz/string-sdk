@@ -1,4 +1,4 @@
-import { registerEvents } from '$lib/events';
+import { registerEvents, sendEvent, Events } from '$lib/events';
 
 export interface StringPayload {
 	apiKey: string;
@@ -21,6 +21,14 @@ const IFRAME_URL = import.meta.env.VITE_IFRAME_URL
 
 const err = (msg: string) => {
 	console.error("[String Pay] " + msg)
+}
+
+const watchWalletChange = (frame: HTMLIFrameElement) => {
+	window.ethereum.on('accountsChanged', () => {
+		if (!frame) return;
+		
+		sendEvent(frame, Events.UPDATE_USER)
+	})
 }
 
 export class StringPay {
@@ -71,7 +79,7 @@ export class StringPay {
 		this.payload = payload;
 
 		registerEvents();
-
+		
 		const iframe = document.createElement('iframe');
 		iframe.style.width = "100vh";
 		iframe.style.height = "700px";
@@ -80,6 +88,8 @@ export class StringPay {
 		iframe.src = IFRAME_URL;
 		container.appendChild(iframe);
 		this.frame = iframe;
+
+		watchWalletChange(this.frame);
 	}
 }
 

@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { StringPayButton } from '$lib';
-	import { connect, walletAddress } from '$lib/wallet';
 	import { onMount } from 'svelte';
+    import { writable } from 'svelte/store';
+	import { ethers } from 'ethers';
 
-	const apiKey = import.meta.env.VITE_STRING_API_KEY
+	const apiKey = import.meta.env.VITE_STRING_API_KEY;
+
+	const signerAddress = writable('');
 
 	$: payload = {
 		apiKey,
@@ -14,20 +17,26 @@
 		currency: "AVAX",
 		price: 0.08,
 		chainID: 43113,
-		userAddress: $walletAddress,
+		userAddress: $signerAddress,
 		contractAddress: "0x41e11fF9F71f51800F67cb913eA6Bc59d3F126Aa",
 		contractFunction: "mintTo(address)",
 		contractReturn: "uint256",
-		contractParameters: [$walletAddress],
+		contractParameters: [$signerAddress],
 		txValue: "0.08 eth",
 	}
 
-	$: disabled = !$walletAddress;
-	
-	onMount(async () => {
-		await connect();
-	});
+	$: disabled = !$signerAddress;
 
+	onMount(async () => {
+		const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+
+		signerAddress.set(ethers.utils.getAddress(accounts[0]));
+
+		window.ethereum.on('accountsChanged', (accounts: any) => {
+			console.log('account changed to', accounts[0]);
+			signerAddress.set(ethers.utils.getAddress(accounts[0]));
+		});
+	});
 </script>
 
 <div>
