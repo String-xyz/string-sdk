@@ -9,6 +9,10 @@ config();
 
 const version = process.env.npm_package_version
 
+if (!process.env.VITE_IFRAME_URL) {
+	throw Error("No VITE_IFRAME_URL found in .env")
+}
+
 export default {
 	input: './src/lib/StringPay.ts',
 	output: {
@@ -21,7 +25,7 @@ export default {
 		typescript(),
 		replace({
 			values: {
-				'import.meta.env.VITE_IFRAME_URL': JSON.stringify(process.env.VITE_IFRAME_URL)
+				'import.meta.env.VITE_IFRAME_URL': JSON.stringify(new URL(process.env.VITE_IFRAME_URL).origin)
 			},
 			preventAssignment: true
 		}),
