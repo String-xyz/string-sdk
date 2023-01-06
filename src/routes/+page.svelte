@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { StringPayButton } from '$lib';
-	import { defaultEvmStores, signerAddress } from 'svelte-ethers-store'
 	import { onMount } from 'svelte';
+    import { writable } from 'svelte/store';
+	import { ethers } from 'ethers';
 
 	const apiKey = import.meta.env.VITE_STRING_API_KEY
+
+	const signerAddress = writable('');
 
 	$: payload = {
 		apiKey,
@@ -24,8 +27,15 @@
 
 	$: disabled = !$signerAddress;
 
-	onMount(() => {
-    	defaultEvmStores.setProvider();
+	onMount(async () => {
+		const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+
+		signerAddress.set(ethers.utils.getAddress(accounts[0]));
+
+    	window.ethereum.on('accountsChanged', (accounts: any) => {
+			console.log('account changed to', accounts[0])
+			signerAddress.set(ethers.utils.getAddress(accounts[0]));
+		})
     }
   )
 </script>

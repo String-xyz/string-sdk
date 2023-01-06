@@ -12,22 +12,23 @@ const err = (msg: string) => {
 
 export enum Events {
 	LOAD_PAYLOAD = 'load_payload',
+	UPDATE_USER = 'update_user',
 	IFRAME_READY = 'ready',
 	IFRAME_RESIZE = 'resize',
 	IFRAME_CLOSE = 'close',
 }
 
-export const sendEvent = (frame: HTMLIFrameElement, eventName: string, data: any) => {
-    if (!frame) {
-        err("sendEvent was not sent a frame")
-    }
+export const sendEvent = (frame: HTMLIFrameElement, eventName: string, data?: any) => {
+	if (!frame) {
+		err("sendEvent was not sent a frame")
+	}
 
-    const message = JSON.stringify({
-        channel: CHANNEL,
-        event: { eventName, data },
-    });
+	const message = JSON.stringify({
+		channel: CHANNEL,
+		event: { eventName, data },
+	});
 
-    frame.contentWindow?.postMessage(message, '*');
+	frame.contentWindow?.postMessage(message, '*');
 }
 
 export const handleEvent = (event: StringEvent) => {
@@ -57,7 +58,6 @@ export const handleEvent = (event: StringEvent) => {
 				frame.style.height = (event.data?.height ?? frame.scrollHeight) + "px";
 			}
 		break;
-
 	}
 }
 
