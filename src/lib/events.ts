@@ -15,19 +15,20 @@ export enum Events {
 	IFRAME_READY = 'ready',
 	IFRAME_RESIZE = 'resize',
 	IFRAME_CLOSE = 'close',
+	PAYLOAD_CHANGED = 'payload_changed',
 }
 
 export const sendEvent = (frame: HTMLIFrameElement, eventName: string, data: any) => {
-    if (!frame) {
-        err("sendEvent was not sent a frame")
-    }
+	if (!frame) {
+		err("sendEvent was not sent a frame")
+	}
 
-    const message = JSON.stringify({
-        channel: CHANNEL,
-        event: { eventName, data },
-    });
+	const message = JSON.stringify({
+		channel: CHANNEL,
+		event: { eventName, data },
+	});
 
-    frame.contentWindow?.postMessage(message, '*');
+	frame.contentWindow?.postMessage(message, '*');
 }
 
 export const handleEvent = (event: StringEvent) => {
@@ -45,18 +46,18 @@ export const handleEvent = (event: StringEvent) => {
 			sendEvent(frame, Events.LOAD_PAYLOAD, payload);
 			StringPay.isLoaded = true;
 			StringPay.onframeload();
-		break;
+			break;
 
 		case Events.IFRAME_CLOSE:
 			StringPay.isLoaded = false;
 			StringPay.onframeclose();
-		break;
+			break;
 
 		case Events.IFRAME_RESIZE:
 			if (event.data?.height != frame.scrollHeight) {
 				frame.style.height = (event.data?.height ?? frame.scrollHeight) + "px";
 			}
-		break;
+			break;
 
 	}
 }

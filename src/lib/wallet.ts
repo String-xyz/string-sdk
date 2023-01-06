@@ -9,7 +9,7 @@ export const connect = async () => {
 	const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
 	const accounts = await provider.send("eth_requestAccounts", []);
 
-	provider.on('accountsChanged', (accounts) => {
+	window.ethereum.on('accountsChanged', async (accounts: any) => {
 		walletAddress.set(ethers.utils.getAddress(accounts[0]));
 	});
 
