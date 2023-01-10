@@ -16,6 +16,8 @@ export enum Events {
 	IFRAME_READY = 'ready',
 	IFRAME_RESIZE = 'resize',
 	IFRAME_CLOSE = 'close',
+	REQUEST_SIGNATURE = 'request_signature',
+	RECEIVE_SIGNATURE = 'receive_signature',
 }
 
 export const sendEvent = (frame: HTMLIFrameElement, eventName: string, data?: any) => {
@@ -31,8 +33,8 @@ export const sendEvent = (frame: HTMLIFrameElement, eventName: string, data?: an
 	frame.contentWindow?.postMessage(message, '*');
 }
 
-export const handleEvent = (event: StringEvent) => {
-	const StringPay = (<any>window)?.StringPay
+export const handleEvent = async (event: StringEvent) => {
+	const StringPay = window.StringPay;
 	const frame = StringPay?.frame;
 	const payload = StringPay?.payload;
 
@@ -46,37 +48,59 @@ export const handleEvent = (event: StringEvent) => {
 			sendEvent(frame, Events.LOAD_PAYLOAD, payload);
 			StringPay.isLoaded = true;
 			StringPay.onframeload();
-		break;
+			break;
 
 		case Events.IFRAME_CLOSE:
+			StringPay.frame?.remove();
+			StringPay.frame = undefined;
 			StringPay.isLoaded = false;
+			unregisterEvents();
 			StringPay.onframeclose();
-
-			StringPay.frame.remove();
-			StringPay.frame = null;
-		break;
+			break;
 
 		case Events.IFRAME_RESIZE:
 			if (event.data?.height != frame.scrollHeight) {
 				frame.style.height = (event.data?.height ?? frame.scrollHeight) + "px";
 			}
-		break;
+
+		case Events.REQUEST_SIGNATURE:
+			// sign the payload and send it back to the iframe
+			const nonce = event.data;
+
+			try {
+				const signature = await window.ethereum.request({
+					method: 'personal_sign',
+					params: [nonce, payload.userAddress],
+				});
+				sendEvent(frame, Events.RECEIVE_SIGNATURE, signature);
+			} catch (error) {
+				console.log("SDK :: Wallet signature error: ", error);
+			}
+
+			break;
 	}
 }
 
-export const registerEvents = () => {
-	window.addEventListener('message', function (e) {
-		if (e.origin !== IFRAME_URL) return;
+const _handleEvent = async (e: any) => {
+	if (e.origin !== IFRAME_URL) return;
 
-		try {
-			const payload = JSON.parse(e.data);
-			const channel = payload.channel;
-			const event = payload.event
-			if (channel == CHANNEL) {
-				handleEvent(event)
-			}
-		} catch (error) {
-			console.log(error);
+	try {
+		const payload = JSON.parse(e.data);
+		const channel = payload.channel;
+		const event = payload.event
+		if (channel == CHANNEL) {
+			await handleEvent(event);
 		}
-	});
-}
+	} catch (error) {
+		console.log(error);
+	}
+};
+
+export const unregisterEvents = () => {
+	window.removeEventListener('message', _handleEvent);
+};
+
+export const registerEvents = () => {
+	unregisterEvents();
+	window.addEventListener('message', _handleEvent);
+};
