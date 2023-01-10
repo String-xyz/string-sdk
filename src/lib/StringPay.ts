@@ -37,9 +37,6 @@ export class StringPay {
 	payload?: StringPayload;
 	isLoaded = false;
 
-	constructor() {
-	}
-
 	onframeload = () => { };
 	onframeclose = () => { };
 	loadFrame(payload: StringPayload) {
