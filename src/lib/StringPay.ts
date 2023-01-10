@@ -26,7 +26,7 @@ const err = (msg: string) => {
 const watchWalletChange = (frame: HTMLIFrameElement) => {
 	window.ethereum.on('accountsChanged', () => {
 		if (!frame) return;
-		
+
 		sendEvent(frame, Events.UPDATE_USER)
 	})
 }
@@ -36,8 +36,12 @@ export class StringPay {
 	frame?: HTMLIFrameElement;
 	payload?: StringPayload;
 	isLoaded = false;
-	onframeload = () => {};
-	onframeclose = () => {};
+
+	constructor() {
+	}
+
+	onframeload = () => { };
+	onframeclose = () => { };
 	loadFrame(payload: StringPayload) {
 		const container = document.querySelector(".string-pay-frame");
 		if (!container) {
@@ -65,7 +69,7 @@ export class StringPay {
 			err(`Invalid API Key: ${payload.apiKey}`);
 			return;
 		}
-		
+
 		if (!payload.userAddress) {
 			err("No user address found, please connect wallet")
 			return;
@@ -79,7 +83,7 @@ export class StringPay {
 		this.payload = payload;
 
 		registerEvents();
-		
+
 		const iframe = document.createElement('iframe');
 		iframe.style.width = "100vh";
 		iframe.style.height = "700px";

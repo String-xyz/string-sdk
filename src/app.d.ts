@@ -1,6 +1,6 @@
 /// <reference types="@sveltejs/kit" />
 
-import type { StringPay } from "$lib";
+import type { StringPay } from "$lib/StringPay";
 
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
