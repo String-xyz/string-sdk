@@ -51,8 +51,6 @@ export const handleEvent = async (event: StringEvent) => {
 			break;
 
 		case Events.IFRAME_CLOSE:
-			console.log("SDK :: Frame closed");
-			console.log("!!!!!!!!!!!! SDK ::: ------ Frame closed");
 			StringPay.frame?.remove();
 			StringPay.frame = undefined;
 			StringPay.isLoaded = false;
@@ -66,7 +64,6 @@ export const handleEvent = async (event: StringEvent) => {
 			}
 
 		case Events.REQUEST_SIGNATURE:
-			console.log("SDK :: Signature request");
 			// sign the payload and send it back to the iframe
 			const nonce = event.data;
 
