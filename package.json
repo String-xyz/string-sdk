@@ -1,6 +1,6 @@
 {
 	"name": "@stringpay/sdk",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"license": "UNLICENSED",
 	"main": "./src/lib/index.ts",
 	"types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
 	"scripts": {
 		"dev": "yarn bundle && vite dev",
 		"package": "svelte-kit sync && svelte-package",
-		"bundle": "rollup -c",
+		"bundle": "rm -rf ./dist; rollup -c",
 		"copy": "mkdir -p ../web-app/node_modules/string-sdk/ && cp ./dist/* ../web-app/node_modules/string-sdk/ && echo Copied to demo module",
 		"release:demo": "yarn bundle && yarn copy",
 		"test:unit": "vitest run --coverage",
