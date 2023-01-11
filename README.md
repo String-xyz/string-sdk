@@ -7,6 +7,11 @@
 ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
 ![Svelte](https://img.shields.io/badge/svelte-%23f1413d.svg?style=for-the-badge&logo=svelte&logoColor=white)
 
+
+## To Publish
+1. `yarn bundle`
+2. `npm publish --access public`
+
 ## Usage
 
 Install the package through `npm` or `yarn` as follows:
