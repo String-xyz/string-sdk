@@ -16,3 +16,11 @@ all:build
 	 --distribution-id ${${env}_DISTRIBUTION_ID} \
 	  --paths "/*"
 
+# 1. remove everything from ./dist
+# 2. increment the version in package.json
+# 3. override .env VITE_IFRAME_URL to point to production
+# 4. yarn bundle
+# 5. npm publish
+# 6. override .env VITE_IFRAME_URL to point to dev
+# 7. yarn bundle
+# 8. npm publish (to dev-sdk)
