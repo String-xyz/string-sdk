@@ -1,0 +1,77 @@
+import type { ApiClient, User } from './apiClient.service';
+import type { LocationService, VisitorData } from './location.service';
+// import { browser } from "$app/environment";
+
+export function createAuthService({ apiClient, locationService }: { apiClient: ApiClient, locationService: LocationService }): AuthService {
+	const previousAttempt = { signature: "", nonce: "" };
+
+	const login = async (nonce: string, signature: string, visitorData: VisitorData) => {
+		const data = await apiClient.loginUser(nonce, signature, visitorData);
+		return data;
+	};
+
+	const loginOrCreateUser = async (walletAddress: string) => {
+		const { nonce } = await apiClient.requestLogin(walletAddress);
+		const { signature } = await requestSignature(walletAddress, nonce);
+		const visitorData = await locationService.getVisitorData();
+
+		previousAttempt.nonce = nonce;
+		previousAttempt.signature = signature;
+
+		try {
+			const data = await apiClient.createUser(nonce, signature, visitorData);
+			return data;
+		} catch (err: any) {
+			// if user already exists, try to login
+			if (err.code === "CONFLICT") return login(nonce, signature, visitorData);
+			throw err;
+		}
+	};
+
+	const logout = async () => {
+		// if (browser) {
+		// 	window.localStorage.clear();
+		// }
+
+		try {
+			await apiClient.logoutUser();
+		} catch {
+			return;
+		}
+	}
+
+	const retryLogin = async () => {
+		// TODO: Use refresh token instead
+		// TODO: Modify refresh token endpoint to verify visitor data
+		if (!previousAttempt.signature) throw { code: "UNAUTHORIZED" };
+
+		const visitorData = await locationService.getVisitorData();
+		const data = await apiClient.loginUser(previousAttempt.nonce, previousAttempt.signature, visitorData);
+		return data;
+	};
+
+	const requestSignature = async (userAddress: string, nonce: string) => {
+		try {
+			const signature = await window.ethereum.request({
+				method: 'personal_sign',
+				params: [nonce, userAddress],
+			});
+
+			return signature;
+		} catch (error) {
+			console.log("SDK :: Wallet signature error: ", error);
+		}
+	}
+
+	return {
+		loginOrCreateUser,
+		retryLogin,
+		logout
+	};
+}
+
+export interface AuthService {
+	loginOrCreateUser: (walletAddress: string) => Promise<{ user: User }>;
+	retryLogin: () => Promise<{ user: User }>;
+	logout: () => Promise<any>;
+}

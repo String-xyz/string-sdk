@@ -1,9 +1,11 @@
+import { authService } from './services';
 const CHANNEL = "STRING_PAY"
-const IFRAME_URL = new URL(import.meta.env.VITE_IFRAME_URL).origin
+const IFRAME_URL = import.meta.env.VITE_IFRAME_URL// new URL(import.meta.env.VITE_IFRAME_URL).origin;
 
 interface StringEvent {
 	eventName: string;
 	data?: any;
+	errorCode: string;
 }
 
 const err = (msg: string) => {
@@ -16,18 +18,20 @@ export enum Events {
 	IFRAME_READY = 'ready',
 	IFRAME_RESIZE = 'resize',
 	IFRAME_CLOSE = 'close',
-	REQUEST_SIGNATURE = 'request_signature',
-	RECEIVE_SIGNATURE = 'receive_signature',
-}
+	REQUEST_AUTHORIZE_USER = 'request_authorize_user',
+	RECEIVE_AUTHORIZE_USER = 'receive_authorize_user',
+	REQUEST_RETRY_LOGIN = 'request_retry_login',
+	RECEIVE_RETRY_LOGIN = 'receive_retry_login',
+};
 
-export const sendEvent = (frame: HTMLIFrameElement, eventName: string, data?: any) => {
+export const sendEvent = <T = any>(frame: HTMLIFrameElement, eventName: string, data?: T, error?: any) => {
 	if (!frame) {
 		err("sendEvent was not sent a frame")
 	}
 
 	const message = JSON.stringify({
 		channel: CHANNEL,
-		event: { eventName, data },
+		event: { eventName, data, errorCode: error?.code },
 	});
 
 	frame.contentWindow?.postMessage(message, '*');
@@ -63,20 +67,32 @@ export const handleEvent = async (event: StringEvent) => {
 				frame.style.height = (event.data?.height ?? frame.scrollHeight) + "px";
 			}
 
-		case Events.REQUEST_SIGNATURE:
-			// sign the payload and send it back to the iframe
-			const nonce = event.data;
-
+		case Events.REQUEST_AUTHORIZE_USER:
+			console.log('1 SDK: REQUEST_AUTHORIZE_USER event received');
 			try {
-				const signature = await window.ethereum.request({
-					method: 'personal_sign',
-					params: [nonce, payload.userAddress],
-				});
-				sendEvent(frame, Events.RECEIVE_SIGNATURE, signature);
-			} catch (error) {
-				console.log("SDK :: Wallet signature error: ", error);
+				const { user } = await authService.loginOrCreateUser(payload.userAddress);
+				console.log('2 SDK: REQUEST_AUTHORIZE_USER event received', user);
+				sendEvent(frame, Events.RECEIVE_AUTHORIZE_USER, { user });
+			} catch (error: any) {
+				console.log('SDK: REQUEST_AUTHORIZE_USER event handler error: ', error);
+				sendEvent(frame, Events.RECEIVE_AUTHORIZE_USER, {}, error);
 			}
 
+			break;
+
+		case Events.REQUEST_RETRY_LOGIN:
+			// try {
+			// 	const { user } = await authService.retryLogin();
+			// 	sendEvent(frame, Events.RECEIVE_RETRY_LOGIN, { user });
+			// } catch (error) {
+			// 	console.log('REQUEST_RETRY_LOGIN event handler error: ', error);
+			// 	sendEvent(frame, Events.RECEIVE_RETRY_LOGIN, {}, error);
+			// }
+
+			break;
+
+		default:
+			console.log("SDK :: Unhandled event: ", event);
 			break;
 	}
 }
@@ -102,5 +118,6 @@ export const unregisterEvents = () => {
 
 export const registerEvents = () => {
 	unregisterEvents();
+
 	window.addEventListener('message', _handleEvent);
 };
