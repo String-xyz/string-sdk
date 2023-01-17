@@ -5,15 +5,14 @@ import typescript from '@rollup/plugin-typescript'
 import { terser } from 'rollup-plugin-terser';
 import replace from '@rollup/plugin-replace';
 import copy from 'rollup-plugin-copy'
-import polyfillNode from 'rollup-plugin-polyfill-node'
 
 import { config } from 'dotenv';
 config();
 
 const version = process.env.npm_package_version
 
-if (!process.env.VITE_IFRAME_URL) {
-	throw Error("No VITE_IFRAME_URL found in .env")
+if (!process.env.VITE_IFRAME_URL || !process.env.VITE_API_URL) {
+	throw Error("Missing variables in .env")
 }
 
 export default {
@@ -29,10 +28,10 @@ export default {
 		json(),
 		commonjs(),
 		resolve({ jsnext: true, preferBuiltins: true, browser: true }),
-		polyfillNode(),
 		replace({
 			values: {
-				'import.meta.env.VITE_IFRAME_URL': JSON.stringify(new URL(process.env.VITE_IFRAME_URL).origin)
+				'import.meta.env.VITE_IFRAME_URL': JSON.stringify(new URL(process.env.VITE_IFRAME_URL).origin),
+				'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL),
 			},
 			preventAssignment: true
 		}),

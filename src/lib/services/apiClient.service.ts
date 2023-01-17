@@ -1,12 +1,9 @@
-import axios from 'axios';
+import axios from 'redaxios';
 
 // TODO: Fix timeout issue
-// TODO: Fix interceptor issue
 
-export function createApiClient(): ApiClient {
-	const baseUrl = 'http://localhost:4040/'// import.meta.env.VITE_API_BASE_PATH;
-	let _apiKey = '';
-	let _walletAddress = '';
+export function createApiClient({ apiKey, baseUrl, walletAddress }: ApiClientOptions): ApiClient {
+	let _userWalletAddress = walletAddress;
 
 	const commonHeaders: any = {
 		'Content-Type': 'application/json',
@@ -19,14 +16,7 @@ export function createApiClient(): ApiClient {
 		// fetch: fetchWithTimeout(10000),
 	});
 
-	function setApiKey(key: string) {
-		_apiKey = key;
-	}
-
-	// this is not ideal, temporary solution until we migrate this file to the sdk
-	function setWalletAddress(address: string) {
-		_walletAddress = address;
-	}
+	const setWalletAddress = (add: string) => _userWalletAddress = add;
 
 	async function createApiKey() {
 		const { data } = await httpClient.post<{ apiKey: string }>('/apikeys');
@@ -44,13 +34,19 @@ export function createApiClient(): ApiClient {
 	}
 
 	async function requestLogin(walletAddress: string) {
-		const headers = { 'X-Api-Key': _apiKey };
-		const { data } = await httpClient.get<{ nonce: string }>(`/login`, { params: { walletAddress }, headers });
-		return data;
+		setWalletAddress(walletAddress);
+		try {
+			const headers = { 'X-Api-Key': apiKey };
+			const { data } = await httpClient.get<{ nonce: string }>(`/login`, { params: { walletAddress: _userWalletAddress }, headers });
+			return data;
+		} catch (e: any) {
+			const error = _getErrorFromAxiosError(e);
+			throw error;
+		}
 	}
 
 	async function createUser(nonce: string, signature: string, visitor: VisitorData) {
-		const headers = { 'X-Api-Key': _apiKey };
+		const headers = { 'X-Api-Key': apiKey };
 		const body = {
 			nonce,
 			signature,
@@ -62,26 +58,28 @@ export function createApiClient(): ApiClient {
 			return data;
 		} catch (e: any) {
 			const error = _getErrorFromAxiosError(e);
-			console.log("createUser error:", error);
 			throw error;
 		}
 	}
 
 	async function updateUser(userId: string, update: UserUpdate) {
-		const { data } = await httpClient.put<User>(`/users/${userId}`, update, {
-			headers: { 'X-Api-Key': _apiKey },
+		const request = () => httpClient.put<User>(`/users/${userId}`, update, {
+			headers: { 'X-Api-Key': apiKey },
 		});
+
+		const { data } = await authInterceptor<{ data: User }>(request);
 		return data;
 	}
 
 	async function requestEmailVerification(userId: string, email: string) {
 		try {
-			const { data } = await httpClient.get(`/users/${userId}/verify-email`, {
-				headers: { 'X-Api-Key': _apiKey },
+			const request = () => httpClient.get(`/users/${userId}/verify-email`, {
+				headers: { 'X-Api-Key': apiKey },
 				params: { email },
 				// timeout: 15 * 60 * 1000 // 15 minutes
 			});
-			return data;
+
+			await authInterceptor(request);
 		} catch (e: any) {
 			const error = _getErrorFromAxiosError(e);
 			throw error;
@@ -89,7 +87,7 @@ export function createApiClient(): ApiClient {
 	}
 
 	async function loginUser(nonce: string, signature: string, visitor: VisitorData) {
-		const headers = { 'X-Api-Key': _apiKey };
+		const headers = { 'X-Api-Key': apiKey };
 		const body = {
 			nonce,
 			signature,
@@ -101,128 +99,96 @@ export function createApiClient(): ApiClient {
 			return data;
 		} catch (e: any) {
 			const error = _getErrorFromAxiosError(e);
-			console.log("loginUser error:", error);
 			throw error;
 		}
 	}
 
-	async function refreshToken() {
-		const headers = { 'X-Api-Key': _apiKey };
+	async function refreshToken(walletAddress: string) {
+		const headers = { 'X-Api-Key': apiKey };
 		try {
-			const { data } = await httpClient.post<AuthToken>(`/login/refresh`, { walletAddress: _walletAddress }, { headers });
+			const { data } = await httpClient.post<{ authToken: AuthToken, user: User }>(`/login/refresh`, { walletAddress }, { headers });
 			console.log(' - Token was refreshed')
 			return data;
 		} catch (e: any) {
 			const error = _getErrorFromAxiosError(e);
-			console.log("refreshToken error:", error);
 			throw error;
 		}
 	}
 
-	// logout
 	async function logoutUser() {
-		const headers = { 'X-Api-Key': _apiKey };
+		const headers = { 'X-Api-Key': apiKey };
 		try {
 			const { status } = await httpClient.post(`/login/logout`, {}, { headers });
 			if (status === 204) return;
 			else throw new Error("logout failed");
 		} catch (e: any) {
 			const error = _getErrorFromAxiosError(e);
-			console.log("logoutUser error:", error);
 			throw error;
 		}
 	}
 
 	async function getUserStatus(userId: string) {
 		if (!userId) throw new Error("userId is required");
-		const headers = { 'X-Api-Key': _apiKey };
+		const headers = { 'X-Api-Key': apiKey };
 		try {
-			const { data } = await httpClient.get<{ status: string, emailStatus: string }>(`/users/${userId}/status`, { headers });
+			const request = () => httpClient.get(`/users/${userId}/status`, { headers });
+			const { data } = await authInterceptor<{ data: { status: string } }>(request);
 			return data;
 		} catch (e: any) {
-			console.error("getUserStatus error:", _getErrorFromAxiosError(e));
-			throw e;
+			const error = _getErrorFromAxiosError(e);
+			throw error;
 		}
 	}
 
-	async function getQuote(contractPayload: ContractPayload) {
-		const headers = { 'X-Api-Key': _apiKey };
+	async function getQuote(payload: QuoteRequestPayload) {
+		const headers = { 'X-Api-Key': apiKey };
 		try {
-			const { data } = await httpClient.post<Promise<TransactPayload>>(`/quotes`, contractPayload, { headers });
-			console.log("getQuote data:", data);
+			const request = () => httpClient.post(`/quotes`, payload, { headers });
+			const { data } = await authInterceptor<{ data: TransactPayload }>(request);
 			return data;
 		} catch (e: any) {
-			console.error("getQuote error:", _getErrorFromAxiosError(e));
-			throw e;
+			const error = _getErrorFromAxiosError(e);
+			throw error;
 		}
 	};
 
 	async function transact(transactPayload: TransactPayload) {
-		const headers = { 'X-Api-Key': _apiKey };
+		const headers = { 'X-Api-Key': apiKey };
 		try {
-			const { data } = await httpClient.post<TransactionResponse>(`/transactions`, transactPayload, { headers });
+			const request = () => httpClient.post(`/transactions`, transactPayload, { headers });
+			const { data } = await authInterceptor<{ data: TransactionResponse }>(request);
 			console.log("transact data:", data);
 			return data;
 		} catch (e: any) {
-			console.error("transact error:", _getErrorFromAxiosError(e));
-			throw e;
+			const error = _getErrorFromAxiosError(e);
+			throw error;
 		}
 	}
 
 	function _getErrorFromAxiosError(e: any) {
+		if (e.data) return e.data;
 		if (e.response) return e.response.data;
 		else if (e.request) return e.request;
 		else return e.message;
 	}
 
-	// TODO: Create a Request interceptor to add the X-Api-Key header to every request
-	// httpClient.interceptors.request.use(
-	// 	async (config: any) => {
-	// 		if (!_apiKey) {
-	// 			console.error('---- 1 ::::::: No API key set');
-	// 			return Promise.reject('No API key set');
-	// 		}
-
-	// 		config.headers['X-Api-Key'] = _apiKey;
-	// 		return config;
-	// 	},
-	// 	error => {
-	// 		console.error('---- 2 ::::::: No API key set');
-	// 		return Promise.reject(error);
-	// 	}
-	// );
-
-	// Response interceptor to refresh the access token. Every time a request is made, the interceptor will check if the access token is expired.
-	// If it is, it will try to refresh the token, and then retry the original request.
-	// httpClient.interceptors.response.use(
-	// 	response => response,
-	// 	async error => {
-	// 		// TODO: once this is migrated to the sdk, make sure there is a wallet connection before refreshing the token
-	// 		if (!error.response || !error.response.data) return Promise.reject(error);
-
-	// 		if (error.response.status === 401 && error.response.data?.code === 'TOKEN_EXPIRED' || error.response.data?.code === 'MISSING_TOKEN') {
-	// 			console.log('------- refreshing token....')
-	// 			const originalRequest = error.config;
-	// 			try {
-	// 				const data = await refreshToken();
-
-	// 				// update the access token in the userStore
-	// 				// retry the original request with the new access token
-	// 				originalRequest.headers['Authorization'] = `Bearer ${data.token}`;
-	// 				return httpClient(originalRequest);
-	// 			} catch (e: any) {
-	// 				console.error("refresh token error:", _getErrorFromAxiosError(e));
-	// 				// TODO: logout user. For now, just throw the error
-	// 				return Promise.reject(error);
-	// 			}
-	// 		}
-
-	// 		return Promise.reject(error);
-	// 	});
+	async function authInterceptor<T>(request: any): Promise<T> {
+		try {
+			const res = await request();
+			return res;
+		} catch (e: any) {
+			if (e.status === 401 && e.data?.code === 'MISSING_TOKEN' || e.data?.code === 'TOKEN_EXPIRED') {
+				const data = await refreshToken(_userWalletAddress);
+				if (data) {
+					// request again
+					return request();
+				}
+			}
+			throw e;
+		}
+	}
 
 	return {
-		setApiKey,
-		setWalletAddress,
 		createApiKey,
 		getApiKeys,
 		validateApiKey,
@@ -236,7 +202,25 @@ export function createApiClient(): ApiClient {
 		getUserStatus,
 		getQuote,
 		transact,
+		setWalletAddress
 	};
+}
+
+export interface ApiClient {
+	createApiKey: () => Promise<{ apiKey: string }>;
+	getApiKeys: () => Promise<ApiKeyResponse[]>;
+	validateApiKey: (keyId: string) => Promise<{ Status: string }>;
+	requestLogin: (walletAddress: string) => Promise<{ nonce: string }>;
+	createUser: (nonce: string, signature: string, visitor: VisitorData) => Promise<{ authToken: AuthToken, user: User }>;
+	updateUser: (userId: string, userUpdate: UserUpdate) => Promise<User>;
+	requestEmailVerification: (userId: string, email: string) => Promise<void>;
+	loginUser: (nonce: string, signature: string, visitor: VisitorData) => Promise<{ authToken: AuthToken, user: User }>;
+	refreshToken: (walletAddress: string) => Promise<{ authToken: AuthToken, user: User }>;
+	logoutUser: () => Promise<void>;
+	getUserStatus: (userId: string) => Promise<{ status: string }>;
+	getQuote: (payload: QuoteRequestPayload) => Promise<TransactPayload>;
+	transact: (quote: TransactPayload) => Promise<TransactionResponse>;
+	setWalletAddress: (walletAddress: string) => void;
 }
 
 interface ApiKeyResponse {
@@ -311,7 +295,7 @@ export interface TransactionResponse {
 	txUrl: string;
 }
 
-export interface ContractPayload {
+export interface QuoteRequestPayload {
 	chainID: number;
 	userAddress: string;
 	contractAddress: string;
@@ -322,22 +306,10 @@ export interface ContractPayload {
 	gasLimit: string;
 }
 
-export interface ApiClient {
-	setApiKey: (apiKey: string) => void;
-	setWalletAddress: (address: string) => void;
-	createApiKey: () => Promise<{ apiKey: string }>;
-	getApiKeys: () => Promise<ApiKeyResponse[]>;
-	validateApiKey: (keyId: string) => Promise<{ Status: string }>;
-	requestLogin: (walletAddress: string) => Promise<{ nonce: string }>;
-	createUser: (nonce: string, signature: string, visitor: VisitorData) => Promise<{ authToken: AuthToken, user: User }>;
-	updateUser: (userId: string, userUpdate: UserUpdate) => Promise<User>;
-	requestEmailVerification: (userId: string, email: string) => Promise<void>;
-	loginUser: (nonce: string, signature: string, visitor: VisitorData) => Promise<{ authToken: AuthToken, user: User }>;
-	refreshToken: () => Promise<AuthToken>;
-	logoutUser: () => Promise<void>;
-	getUserStatus: (userId: string) => Promise<{ status: string, emailStatus: string }>;
-	getQuote: (contractPayload: ContractPayload) => Promise<TransactPayload>;
-	transact: (quote: TransactPayload) => Promise<TransactionResponse>;
+export interface ApiClientOptions {
+	apiKey: string;
+	baseUrl: string;
+	walletAddress: string;
 }
 
 

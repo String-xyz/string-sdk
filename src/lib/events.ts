@@ -1,14 +1,175 @@
-import { authService } from './services';
-const CHANNEL = "STRING_PAY"
-const IFRAME_URL = import.meta.env.VITE_IFRAME_URL// new URL(import.meta.env.VITE_IFRAME_URL).origin;
+import type { StringPay } from './StringPay';
+import type { Services } from './services';
+import type { QuoteRequestPayload, TransactPayload } from './services/apiClient.service';
 
-interface StringEvent {
-	eventName: string;
-	data?: any;
-	errorCode: string;
+const CHANNEL = "STRING_PAY"
+const IFRAME_URL = new URL(import.meta.env.VITE_IFRAME_URL).origin;
+
+export function createEventsService(stringPay: StringPay, services: Services) {
+	const { authService, quoteService } = services;
+
+	if (!stringPay.frame || !stringPay.payload) {
+		throw new Error("No frame found");
+	}
+	const stringPayload = stringPay.payload;
+	const frame = stringPay.frame;
+
+	const eventHandlers: { [key: string]: (event: StringEvent) => void } = {
+		[Events.IFRAME_READY]: onIframeReady,
+		[Events.IFRAME_CLOSE]: onIframeClose,
+		[Events.IFRAME_RESIZE]: onIframeResize,
+		[Events.REQUEST_AUTHORIZE_USER]: onAuthorizeUser,
+		[Events.REQUEST_RETRY_LOGIN]: onRetryLogin,
+		[Events.REQUEST_EMAIL_VERIFICATION]: onEmailVerification,
+		[Events.REQUEST_QUOTE_START]: onQuoteStart,
+		[Events.REQUEST_QUOTE_STOP]: onQuoteStop,
+		[Events.REQUEST_CONFIRM_TRANSACTION]: onConfirmTransaction,
+	};
+
+	const sendEvent = <T = any>(frame: HTMLIFrameElement, eventName: string, data?: T, error?: any) => {
+		if (!frame) {
+			err("sendEvent was not sent a frame")
+		}
+
+		const message = JSON.stringify({
+			channel: CHANNEL,
+			event: { eventName, data, errorCode: error?.code },
+		});
+
+		frame.contentWindow?.postMessage(message, '*');
+	}
+
+	const registerEvents = () => {
+		unregisterEvents();
+
+		window.addEventListener('message', _handleEvent);
+	};
+
+	const unregisterEvents = () => {
+		window.removeEventListener('message', _handleEvent);
+	};
+
+
+	async function _handleEvent(e: any) {
+		if (e.origin !== IFRAME_URL) return;
+
+		try {
+			const payload = JSON.parse(e.data);
+			const channel = payload.channel;
+			const event = <StringEvent>payload.event
+			if (channel === CHANNEL) {
+				const handler = eventHandlers[event.eventName];
+				if (handler) await handler(event);
+				else console.debug("SDK :: Unhandled event: ", event);
+			}
+		} catch (error) {
+			console.log(error);
+		}
+	};
+
+	/** -------------- EVENT HANDLERS  ---------------- */
+
+	async function onIframeReady(event: StringEvent) {
+		sendEvent(frame, Events.LOAD_PAYLOAD, stringPayload);
+		stringPay.isLoaded = true;
+		stringPay.onframeload();
+	}
+
+	async function onIframeClose(event: StringEvent) {
+		stringPay.frame?.remove();
+		stringPay.frame = undefined;
+		stringPay.isLoaded = false;
+		unregisterEvents();
+		stringPay.onframeclose();
+		quoteService.stopQuote();
+	}
+
+	async function onIframeResize(event: StringEvent) {
+		if (event.data?.height != frame.scrollHeight) {
+			frame.style.height = (event.data?.height ?? frame.scrollHeight) + "px";
+		}
+	}
+
+	async function onAuthorizeUser(event: StringEvent) {
+		try {
+			const { user } = await authService.loginOrCreateUser(stringPayload.userAddress);
+			sendEvent(frame, Events.RECEIVE_AUTHORIZE_USER, { user });
+		} catch (error: any) {
+			sendEvent(frame, Events.RECEIVE_AUTHORIZE_USER, {}, error);
+		}
+	}
+
+	async function onRetryLogin(event: StringEvent) {
+		try {
+			const { user } = await authService.retryLogin();
+			sendEvent(frame, Events.RECEIVE_RETRY_LOGIN, { user });
+		} catch (error) {
+			sendEvent(frame, Events.RECEIVE_RETRY_LOGIN, {}, error);
+		}
+	}
+
+	async function onEmailVerification(event: StringEvent) {
+		try {
+			const data = <{ userId: string, email: string }>event.data;
+			await services.apiClient.requestEmailVerification(data.userId, data.email);
+			sendEvent(frame, Events.RECEIVE_EMAIL_VERIFICATION, { status: 'email_verified' });
+		} catch (error: any) {
+			sendEvent(frame, Events.RECEIVE_EMAIL_VERIFICATION, {}, error);
+		}
+	}
+
+	async function onQuoteStart(event: StringEvent) {
+		const payload = <QuoteRequestPayload>stringPayload;
+
+		const callback = (quote: TransactPayload) => sendEvent(frame, Events.QUOTE_CHANGED, { quote });
+		quoteService.startQuote(payload, callback);
+	}
+
+	async function onQuoteStop(event: StringEvent) {
+		quoteService.stopQuote();
+	}
+
+	async function onConfirmTransaction(event: StringEvent) {
+		try {
+			const data = <TransactPayload>event.data;
+			const txHash = await services.apiClient.transact(data);
+			sendEvent(frame, Events.RECEIVE_CONFIRM_TRANSACTION, { txHash });
+		} catch (error: any) {
+			sendEvent(frame, Events.RECEIVE_CONFIRM_TRANSACTION, {}, error);
+
+		}
+	}
+
+	const watchWalletChange = () => {
+		// TODO: modify this logic
+		window.ethereum.on('accountsChanged', (accounts: string[]) => {
+			sendEvent(frame, Events.UPDATE_USER);
+			services.apiClient.setWalletAddress(accounts[0]);
+			onIframeClose({ eventName: Events.IFRAME_CLOSE } as StringEvent)
+			logout();
+		});
+
+	}
+
+	function logout() {
+		services.apiClient.logoutUser();
+	}
+
+	return {
+		registerEvents,
+		unregisterEvents,
+		sendEvent,
+		watchWalletChange
+	}
 }
 
-const err = (msg: string) => {
+export interface StringEvent {
+	eventName: string;
+	data?: any;
+	error: string;
+}
+
+function err(msg: string) {
 	console.error("[String Pay] " + msg)
 }
 
@@ -22,102 +183,11 @@ export enum Events {
 	RECEIVE_AUTHORIZE_USER = 'receive_authorize_user',
 	REQUEST_RETRY_LOGIN = 'request_retry_login',
 	RECEIVE_RETRY_LOGIN = 'receive_retry_login',
-};
-
-export const sendEvent = <T = any>(frame: HTMLIFrameElement, eventName: string, data?: T, error?: any) => {
-	if (!frame) {
-		err("sendEvent was not sent a frame")
-	}
-
-	const message = JSON.stringify({
-		channel: CHANNEL,
-		event: { eventName, data, errorCode: error?.code },
-	});
-
-	frame.contentWindow?.postMessage(message, '*');
-}
-
-export const handleEvent = async (event: StringEvent) => {
-	const StringPay = window.StringPay;
-	const frame = StringPay?.frame;
-	const payload = StringPay?.payload;
-
-	if (!frame || !payload) {
-		err("Cannot find frame or payload")
-		return;
-	}
-
-	switch (event.eventName) {
-		case Events.IFRAME_READY:
-			sendEvent(frame, Events.LOAD_PAYLOAD, payload);
-			StringPay.isLoaded = true;
-			StringPay.onframeload();
-			break;
-
-		case Events.IFRAME_CLOSE:
-			StringPay.frame?.remove();
-			StringPay.frame = undefined;
-			StringPay.isLoaded = false;
-			unregisterEvents();
-			StringPay.onframeclose();
-			break;
-
-		case Events.IFRAME_RESIZE:
-			if (event.data?.height != frame.scrollHeight) {
-				frame.style.height = (event.data?.height ?? frame.scrollHeight) + "px";
-			}
-
-		case Events.REQUEST_AUTHORIZE_USER:
-			console.log('1 SDK: REQUEST_AUTHORIZE_USER event received');
-			try {
-				const { user } = await authService.loginOrCreateUser(payload.userAddress);
-				console.log('2 SDK: REQUEST_AUTHORIZE_USER event received', user);
-				sendEvent(frame, Events.RECEIVE_AUTHORIZE_USER, { user });
-			} catch (error: any) {
-				console.log('SDK: REQUEST_AUTHORIZE_USER event handler error: ', error);
-				sendEvent(frame, Events.RECEIVE_AUTHORIZE_USER, {}, error);
-			}
-
-			break;
-
-		case Events.REQUEST_RETRY_LOGIN:
-			// try {
-			// 	const { user } = await authService.retryLogin();
-			// 	sendEvent(frame, Events.RECEIVE_RETRY_LOGIN, { user });
-			// } catch (error) {
-			// 	console.log('REQUEST_RETRY_LOGIN event handler error: ', error);
-			// 	sendEvent(frame, Events.RECEIVE_RETRY_LOGIN, {}, error);
-			// }
-
-			break;
-
-		default:
-			console.log("SDK :: Unhandled event: ", event);
-			break;
-	}
-}
-
-const _handleEvent = async (e: any) => {
-	if (e.origin !== IFRAME_URL) return;
-
-	try {
-		const payload = JSON.parse(e.data);
-		const channel = payload.channel;
-		const event = payload.event
-		if (channel == CHANNEL) {
-			await handleEvent(event);
-		}
-	} catch (error) {
-		console.log(error);
-	}
-};
-
-export const unregisterEvents = () => {
-	window.removeEventListener('message', _handleEvent);
-};
-
-export const registerEvents = () => {
-	unregisterEvents();
-
-	window.addEventListener('message', _handleEvent);
+	REQUEST_EMAIL_VERIFICATION = "REQUEST_EMAIL_VERIFICATION",
+	RECEIVE_EMAIL_VERIFICATION = "RECEIVE_EMAIL_VERIFICATION",
+	REQUEST_CONFIRM_TRANSACTION = "REQUEST_CONFIRM_TRANSACTION",
+	RECEIVE_CONFIRM_TRANSACTION = "RECEIVE_CONFIRM_TRANSACTION",
+	REQUEST_QUOTE_START = "REQUEST_QUOTE_START",
+	QUOTE_CHANGED = "QUOTE_CHANGED",
+	REQUEST_QUOTE_STOP = "REQUEST_QUOTE_STOP"
 };

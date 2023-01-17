@@ -1,6 +1,5 @@
 import type { ApiClient, User } from './apiClient.service';
 import type { LocationService, VisitorData } from './location.service';
-// import { browser } from "$app/environment";
 
 export function createAuthService({ apiClient, locationService }: { apiClient: ApiClient, locationService: LocationService }): AuthService {
 	const previousAttempt = { signature: "", nonce: "" };
@@ -12,7 +11,7 @@ export function createAuthService({ apiClient, locationService }: { apiClient: A
 
 	const loginOrCreateUser = async (walletAddress: string) => {
 		const { nonce } = await apiClient.requestLogin(walletAddress);
-		const { signature } = await requestSignature(walletAddress, nonce);
+		const signature = await requestSignature(walletAddress, nonce);
 		const visitorData = await locationService.getVisitorData();
 
 		previousAttempt.nonce = nonce;
@@ -63,15 +62,26 @@ export function createAuthService({ apiClient, locationService }: { apiClient: A
 		}
 	}
 
+	const fetchLoggedInUser = async (walletAddress: string) => {
+		try {
+			const { user } = await apiClient.refreshToken(walletAddress);
+			return user;
+		} catch (err: any) {
+			return null;
+		}
+	}
+
 	return {
 		loginOrCreateUser,
 		retryLogin,
-		logout
+		logout,
+		fetchLoggedInUser
 	};
 }
 
 export interface AuthService {
 	loginOrCreateUser: (walletAddress: string) => Promise<{ user: User }>;
 	retryLogin: () => Promise<{ user: User }>;
+	fetchLoggedInUser: (walletAddress: string) => Promise<User | null>;
 	logout: () => Promise<any>;
 }
