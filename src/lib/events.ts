@@ -142,9 +142,7 @@ export function createEventsService(stringPay: StringPay, services: Services) {
 	}
 
 	const watchWalletChange = () => {
-		// TODO: modify this logic
 		window.ethereum.on('accountsChanged', (accounts: string[]) => {
-			sendEvent(frame, Events.UPDATE_USER);
 			services.apiClient.setWalletAddress(accounts[0]);
 			onIframeClose({ eventName: Events.IFRAME_CLOSE } as StringEvent)
 			logout();
@@ -176,7 +174,6 @@ function err(msg: string) {
 
 export enum Events {
 	LOAD_PAYLOAD = 'load_payload',
-	UPDATE_USER = 'update_user',
 	IFRAME_READY = 'ready',
 	IFRAME_RESIZE = 'resize',
 	IFRAME_CLOSE = 'close',
