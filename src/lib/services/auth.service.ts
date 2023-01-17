@@ -14,6 +14,7 @@ export function createAuthService({ apiClient, locationService }: { apiClient: A
 		const signature = await requestSignature(walletAddress, nonce);
 		const visitorData = await locationService.getVisitorData();
 
+		// is there a better way to do this? I'm concerned about keeping this state in memory and not in local storage
 		previousAttempt.nonce = nonce;
 		previousAttempt.signature = signature;
 

@@ -157,7 +157,6 @@ export function createApiClient({ apiKey, baseUrl, walletAddress }: ApiClientOpt
 		try {
 			const request = () => httpClient.post(`/transactions`, transactPayload, { headers });
 			const { data } = await authInterceptor<{ data: TransactionResponse }>(request);
-			console.log("transact data:", data);
 			return data;
 		} catch (e: any) {
 			const error = _getErrorFromAxiosError(e);
@@ -169,7 +168,8 @@ export function createApiClient({ apiKey, baseUrl, walletAddress }: ApiClientOpt
 		if (e.data) return e.data;
 		if (e.response) return e.response.data;
 		else if (e.request) return e.request;
-		else return e.message;
+		if (e.message) return e.message;
+		return e;
 	}
 
 	async function authInterceptor<T>(request: any): Promise<T> {
