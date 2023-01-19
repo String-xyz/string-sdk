@@ -28,7 +28,7 @@ export function createEventsService(stringPay: StringPay, services: Services) {
 
 	const sendEvent = <T = any>(frame: HTMLIFrameElement, eventName: string, data?: T, error?: any) => {
 		if (!frame) {
-			err("sendEvent was not sent a frame")
+			err("a frame was not provided to sendEvent")
 		}
 		const stringEvent: StringEvent = { eventName, data, error };
 		const message = JSON.stringify({
