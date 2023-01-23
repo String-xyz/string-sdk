@@ -38,8 +38,8 @@ export class StringPay {
 	payload?: StringPayload;
 	isLoaded = false;
 
-	onframeload = () => { };
-	onframeclose = () => { };
+	onFrameLoad = () => { };
+	onFrameClose = () => { };
 	async loadFrame(payload: StringPayload) {
 		// make sure there is a wallet connected
 		if (!window.ethereum || !window.ethereum.selectedAddress) return err("No wallet connected, please connect wallet");

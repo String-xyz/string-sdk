@@ -14,7 +14,7 @@ export function createEventsService(stringPay: StringPay, services: Services) {
 	const stringPayload = stringPay.payload;
 	const frame = stringPay.frame;
 
-	const eventHandlers: { [key: string]: (event: StringEvent) => void } = {
+	const eventHandlers: Record<string, (event: StringEvent) => void> = {
 		[Events.IFRAME_READY]: onIframeReady,
 		[Events.IFRAME_CLOSE]: onIframeClose,
 		[Events.IFRAME_RESIZE]: onIframeResize,
@@ -72,7 +72,7 @@ export function createEventsService(stringPay: StringPay, services: Services) {
 	async function onIframeReady(event: StringEvent) {
 		sendEvent(frame, Events.LOAD_PAYLOAD, stringPayload);
 		stringPay.isLoaded = true;
-		stringPay.onframeload();
+		stringPay.onFrameLoad();
 	}
 
 	async function onIframeClose(event: StringEvent) {
@@ -80,7 +80,7 @@ export function createEventsService(stringPay: StringPay, services: Services) {
 		stringPay.frame = undefined;
 		stringPay.isLoaded = false;
 		unregisterEvents();
-		stringPay.onframeclose();
+		stringPay.onFrameClose();
 		quoteService.stopQuote();
 	}
 
