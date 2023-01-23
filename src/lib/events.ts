@@ -1,11 +1,11 @@
-import type { StringPay } from './StringPay';
+import type { StringPay, StringPayload } from './StringPay';
 import type { Services } from './services';
-import type { QuoteRequestPayload, TransactPayload } from './services/apiClient.service';
+import type { QuoteRequestPayload, TransactPayload, User } from './services/apiClient.service';
 
 const CHANNEL = "STRING_PAY"
 const IFRAME_URL = new URL(import.meta.env.VITE_IFRAME_URL).origin;
 
-export function createEventsService(stringPay: StringPay, services: Services) {
+export function createEventsService(stringPay: StringPay, services: Services, user: User | null) {
 	const { authService, quoteService } = services;
 
 	if (!stringPay.frame || !stringPay.payload) {
@@ -39,18 +39,7 @@ export function createEventsService(stringPay: StringPay, services: Services) {
 		frame.contentWindow?.postMessage(message, '*');
 	}
 
-	const registerEvents = () => {
-		unregisterEvents();
-
-		window.addEventListener('message', _handleEvent);
-	};
-
-	const unregisterEvents = () => {
-		window.removeEventListener('message', _handleEvent);
-	};
-
-
-	async function _handleEvent(e: any) {
+	const _handleEvent = async (e: any) => {
 		if (e.origin !== IFRAME_URL) return;
 
 		try {
@@ -63,14 +52,25 @@ export function createEventsService(stringPay: StringPay, services: Services) {
 				else console.debug("SDK :: Unhandled event: ", event);
 			}
 		} catch (error) {
-			console.log(error);
+			console.error('sdk: _handleEvent error: ', error);
 		}
+	};
+
+	const registerEvents = () => {
+		unregisterEvents();
+
+		window.addEventListener('message', _handleEvent);
+	};
+
+	const unregisterEvents = () => {
+		window.removeEventListener('message', _handleEvent, false);
 	};
 
 	/** -------------- EVENT HANDLERS  ---------------- */
 
 	async function onIframeReady(event: StringEvent) {
-		sendEvent(frame, Events.LOAD_PAYLOAD, stringPayload);
+		const iframePayload = createIframePayload(stringPayload, user);
+		sendEvent(frame, Events.LOAD_PAYLOAD, iframePayload);
 		stringPay.isLoaded = true;
 		stringPay.onFrameLoad();
 	}
@@ -162,10 +162,25 @@ export function createEventsService(stringPay: StringPay, services: Services) {
 	}
 }
 
-export interface StringEvent {
-	eventName: string;
-	data?: any;
-	error: string;
+// Parse payload before sending it to the iframe
+function createIframePayload(payload: StringPayload, _user: User | null): IframePayload {
+	const nft: NFT = {
+		name: payload.name,
+		price: payload.price,
+		currency: payload.currency,
+		collection: payload.collection,
+		imageSrc: payload.imageSrc,
+		imageAlt: payload?.imageAlt ?? "NFT"
+	};
+
+	return {
+		nft,
+		user: {
+			walletAddress: payload.userAddress,
+			id: _user?.id ?? "",
+			status: _user?.status ?? ""
+		}
+	};
 }
 
 function err(msg: string) {
@@ -189,3 +204,27 @@ export enum Events {
 	QUOTE_CHANGED = "quote_changed",
 	REQUEST_QUOTE_STOP = "request_quote_stop"
 };
+
+export interface StringEvent {
+	eventName: string;
+	data?: any;
+	error: string;
+}
+
+export interface NFT {
+	name: string;
+	price: number;
+	currency: string;
+	collection: string;
+	imageSrc: string;
+	imageAlt?: string;
+}
+
+export interface IframePayload {
+	nft: NFT;
+	user: {
+		id: string;
+		walletAddress: string;
+		status: string;
+	}
+}

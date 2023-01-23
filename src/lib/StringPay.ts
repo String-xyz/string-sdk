@@ -16,12 +16,6 @@ export interface StringPayload {
 	contractReturn: string,
 	contractParameters: string[];
 	txValue: string;
-	user?: {
-		walletAddress: string; /** @duplicated can we get rid of userAddress? */
-		id?: string;
-		email?: string;
-		status?: string;
-	};
 	gasLimit?: string;
 }
 
@@ -75,8 +69,6 @@ export class StringPay {
 		// set the default gas limit
 		this.payload.gasLimit = "8000000"; // TODO: Do we want this value to change dynamically?
 
-		// set user if exists and logged in
-		this.payload.user = { walletAddress: this.payload.userAddress };
 
 		// Create services
 		const services = createServices({
@@ -89,13 +81,9 @@ export class StringPay {
 		services.apiClient.setWalletAddress(this.payload.userAddress);
 
 		const user = await services.authService.fetchLoggedInUser(this.payload.userAddress);
-		if (user) {
-			this.payload.user.id = user.id;
-			this.payload.user.status = user.status;
-		}
 
 		// Register events
-		const eventsService = createEventsService(this, services);
+		const eventsService = createEventsService(this, services, user);
 		eventsService.registerEvents();
 		eventsService.watchWalletChange();
 	}
