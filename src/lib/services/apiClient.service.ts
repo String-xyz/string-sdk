@@ -45,7 +45,7 @@ export function createApiClient({ apiKey, baseUrl, walletAddress }: ApiClientOpt
 		}
 	}
 
-	async function createUser(nonce: string, signature: string, visitor: VisitorData) {
+	async function createUser(nonce: string, signature: string, visitor?: VisitorData) {
 		const headers = { 'X-Api-Key': apiKey };
 		const body = {
 			nonce,
@@ -86,7 +86,7 @@ export function createApiClient({ apiKey, baseUrl, walletAddress }: ApiClientOpt
 		}
 	}
 
-	async function loginUser(nonce: string, signature: string, visitor: VisitorData) {
+	async function loginUser(nonce: string, signature: string, visitor?: VisitorData) {
 		const headers = { 'X-Api-Key': apiKey };
 		const body = {
 			nonce,
@@ -211,10 +211,10 @@ export interface ApiClient {
 	getApiKeys: () => Promise<ApiKeyResponse[]>;
 	validateApiKey: (keyId: string) => Promise<{ Status: string }>;
 	requestLogin: (walletAddress: string) => Promise<{ nonce: string }>;
-	createUser: (nonce: string, signature: string, visitor: VisitorData) => Promise<{ authToken: AuthToken, user: User }>;
+	createUser: (nonce: string, signature: string, visitor?: VisitorData) => Promise<{ authToken: AuthToken, user: User }>;
 	updateUser: (userId: string, userUpdate: UserUpdate) => Promise<User>;
 	requestEmailVerification: (userId: string, email: string) => Promise<void>;
-	loginUser: (nonce: string, signature: string, visitor: VisitorData) => Promise<{ authToken: AuthToken, user: User }>;
+	loginUser: (nonce: string, signature: string, visitor?: VisitorData) => Promise<{ authToken: AuthToken, user: User }>;
 	refreshToken: (walletAddress: string) => Promise<{ authToken: AuthToken, user: User }>;
 	logoutUser: () => Promise<void>;
 	getUserStatus: (userId: string) => Promise<{ status: string }>;
