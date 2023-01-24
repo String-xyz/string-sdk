@@ -134,7 +134,7 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 		try {
 			const data = <TransactPayload>event.data;
 			const txHash = await services.apiClient.transact(data);
-			sendEvent(frame, Events.RECEIVE_CONFIRM_TRANSACTION, { txHash });
+			sendEvent(frame, Events.RECEIVE_CONFIRM_TRANSACTION, txHash);
 		} catch (error: any) {
 			sendEvent(frame, Events.RECEIVE_CONFIRM_TRANSACTION, {}, error);
 
