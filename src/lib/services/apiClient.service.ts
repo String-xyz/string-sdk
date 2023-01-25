@@ -16,7 +16,7 @@ export function createApiClient({ apiKey, baseUrl, walletAddress }: ApiClientOpt
 		// fetch: fetchWithTimeout(10000),
 	});
 
-	const setWalletAddress = (add: string) => _userWalletAddress = add;
+	const setWalletAddress = (addr: string) => _userWalletAddress = addr;
 
 	async function createApiKey() {
 		const { data } = await httpClient.post<{ apiKey: string }>('/apikeys');
