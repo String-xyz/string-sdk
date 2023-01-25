@@ -1,18 +1,19 @@
 <script lang="ts">
-	import { StringPayButton } from '$lib';
-	import { onMount } from 'svelte';
-    import { writable } from 'svelte/store';
-	import { ethers } from 'ethers';
+	import { StringPayButton } from "$lib";
+	import { onMount } from "svelte";
+	import { writable } from "svelte/store";
+	import { ethers } from "ethers";
 
 	const apiKey = import.meta.env.VITE_STRING_API_KEY;
 
-	const signerAddress = writable('');
+	const signerAddress = writable("");
 
 	$: payload = {
 		apiKey,
 		name: "String Demo NFT",
 		collection: "String Demo",
-		imageSrc: "https://gateway.pinata.cloud/ipfs/bafybeibtmy26mac47n5pp6srds76h74riqs76erw24p5yvdhmwu7pxlcx4/STR_Logo_1.png",
+		imageSrc:
+			"https://gateway.pinata.cloud/ipfs/bafybeibtmy26mac47n5pp6srds76h74riqs76erw24p5yvdhmwu7pxlcx4/STR_Logo_1.png",
 		imageAlt: "NFT",
 		currency: "AVAX",
 		price: 0.08,
@@ -23,17 +24,18 @@
 		contractReturn: "uint256",
 		contractParameters: [$signerAddress],
 		txValue: "0.08 eth",
-	}
+	};
 
 	$: disabled = !$signerAddress;
 
 	onMount(async () => {
-		const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+		const accounts = await window.ethereum.request({
+			method: "eth_requestAccounts",
+		});
 
 		signerAddress.set(ethers.utils.getAddress(accounts[0]));
 
-		window.ethereum.on('accountsChanged', (accounts: any) => {
-			console.log('account changed to', accounts[0]);
+		window.ethereum.on("accountsChanged", (accounts: any) => {
 			signerAddress.set(ethers.utils.getAddress(accounts[0]));
 		});
 	});
