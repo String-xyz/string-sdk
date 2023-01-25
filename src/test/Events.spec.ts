@@ -13,6 +13,8 @@ describe.skip('Events.ts', () => {
 	it('handles iframe_ready event', () => {
 		const event = { eventName: Events.IFRAME_READY }
 
+		// comment out the following line till we fix these tests
+		// In order to fix these tests, we need to expose some other functions and create services mock
 		// handleEvent(event)
 
 		expect(window.StringPay.isLoaded).toBeTruthy()
@@ -22,6 +24,8 @@ describe.skip('Events.ts', () => {
 		const height = 400
 		const event = { eventName: Events.IFRAME_RESIZE, data: { height } }
 
+		// comment out the following line till we fix these tests
+		// In order to fix these tests, we need to expose some other functions and create services mock
 		// handleEvent(event)
 
 		expect(window.StringPay?.frame?.style.height).toBe(height + "px")

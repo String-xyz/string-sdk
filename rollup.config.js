@@ -31,7 +31,7 @@ export default {
 		replace({
 			values: {
 				'import.meta.env.VITE_IFRAME_URL': JSON.stringify(new URL(process.env.VITE_IFRAME_URL).origin),
-				'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL),
+				'import.meta.env.VITE_API_URL': JSON.stringify(new URL(process.env.VITE_API_URL).origin),
 				'import.meta.env.VITE_ANALYTICS_LIB_PK': JSON.stringify(process.env.VITE_ANALYTICS_LIB_PK),
 			},
 			preventAssignment: true

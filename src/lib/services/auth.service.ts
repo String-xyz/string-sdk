@@ -29,10 +29,6 @@ export function createAuthService({ apiClient, locationService }: { apiClient: A
 	};
 
 	const logout = async () => {
-		// if (browser) {
-		// 	window.localStorage.clear();
-		// }
-
 		try {
 			await apiClient.logoutUser();
 		} catch {

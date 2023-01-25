@@ -29,9 +29,6 @@ export function createLocationService(options = {}): LocationService {
 			const fp = await getFPInstance();
 			const visitorData = await fp.get(options);
 
-			// visitorData.visitorId = "uNngbc1ug3xpZ1czqqJH";
-			// visitorData.requestId = "1672778461626.kiTB1x";
-
 			return visitorData;
 		} catch (e) {
 			console.error('analytics service error:', e);
