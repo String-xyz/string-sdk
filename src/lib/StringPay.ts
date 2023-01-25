@@ -86,6 +86,9 @@ export class StringPay {
 		const eventsService = createEventsService(this, services, user);
 		eventsService.registerEvents();
 		eventsService.watchWalletChange();
+
+		// init fp service
+		services.locationService.getFPInstance().catch(err => console.debug('getFPInstance error: ', err));
 	}
 }
 
