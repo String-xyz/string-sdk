@@ -311,24 +311,3 @@ export interface ApiClientOptions {
 	baseUrl: string;
 	walletAddress: string;
 }
-
-
-// const fetchWithTimeout =
-// 	(timeoutMs: number) =>
-// 		(input: RequestInfo, init?: RequestInit): Promise<Response> => {
-// 			return fetch(input, {
-// 				...init,
-// 				signal: abortFetchSignal(timeoutMs),
-// 			})
-// 		}
-
-// const abortFetchSignal = (timeoutMs: number) => {
-// 	if (typeof window === 'undefined' || window.AbortController === undefined) {
-// 		return undefined
-// 	}
-
-// 	const abortController = new AbortController()
-// 	setTimeout(() => abortController.abort(), timeoutMs)
-
-// 	return abortController.signal
-// }
