@@ -68,14 +68,14 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 
 	/** -------------- EVENT HANDLERS  ---------------- */
 
-	async function onIframeReady(event: StringEvent) {
+	async function onIframeReady() {
 		const iframePayload = createIframePayload(stringPayload, user);
 		sendEvent(frame, Events.LOAD_PAYLOAD, iframePayload);
 		stringPay.isLoaded = true;
 		stringPay.onFrameLoad();
 	}
 
-	async function onIframeClose(event: StringEvent) {
+	async function onIframeClose() {
 		stringPay.frame?.remove();
 		stringPay.frame = undefined;
 		stringPay.isLoaded = false;
@@ -90,7 +90,7 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 		}
 	}
 
-	async function onAuthorizeUser(event: StringEvent) {
+	async function onAuthorizeUser() {
 		try {
 			const { user } = await authService.loginOrCreateUser(stringPayload.userAddress);
 			sendEvent(frame, Events.RECEIVE_AUTHORIZE_USER, { user });
@@ -100,7 +100,7 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 		}
 	}
 
-	async function onRetryLogin(event: StringEvent) {
+	async function onRetryLogin() {
 		try {
 			const { user } = await authService.retryLogin();
 			sendEvent(frame, Events.RECEIVE_RETRY_LOGIN, { user });
@@ -119,14 +119,14 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 		}
 	}
 
-	async function onQuoteStart(event: StringEvent) {
+	async function onQuoteStart() {
 		const payload = <QuoteRequestPayload>stringPayload;
 
 		const callback = (quote: TransactPayload) => sendEvent(frame, Events.QUOTE_CHANGED, { quote });
 		quoteService.startQuote(payload, callback);
 	}
 
-	async function onQuoteStop(event: StringEvent) {
+	async function onQuoteStop() {
 		quoteService.stopQuote();
 	}
 
@@ -144,7 +144,7 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 	const watchWalletChange = () => {
 		window.ethereum.on('accountsChanged', (accounts: string[]) => {
 			services.apiClient.setWalletAddress(accounts[0]);
-			onIframeClose({ eventName: Events.IFRAME_CLOSE } as StringEvent)
+			onIframeClose();
 			logout();
 		});
 
@@ -203,7 +203,7 @@ export enum Events {
 	REQUEST_QUOTE_START = "request_quote_start",
 	QUOTE_CHANGED = "quote_changed",
 	REQUEST_QUOTE_STOP = "request_quote_stop"
-};
+}
 
 export interface StringEvent {
 	eventName: string;
