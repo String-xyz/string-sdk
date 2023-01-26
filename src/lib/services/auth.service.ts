@@ -46,11 +46,19 @@ export function createAuthService({ apiClient, locationService }: { apiClient: A
 		return data;
 	};
 
-	const requestSignature = async (userAddress: string, nonce: string) => {
+
+	/** 
+	 * Prompts the user to sign a message using their wallet
+	 * @param userAddress - The user's wallet address
+	 * @param encodedMessage - The nonce encoded in base64
+	 * @returns The signature of the message
+	 */
+	const requestSignature = async (userAddress: string, encodedMessage: string) => {
 		try {
+			const message = window.atob(encodedMessage);
 			const signature = await window.ethereum.request({
 				method: 'personal_sign',
-				params: [nonce, userAddress],
+				params: [message, userAddress],
 			});
 
 			return signature;
