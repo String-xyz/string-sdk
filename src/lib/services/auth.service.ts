@@ -4,7 +4,7 @@ import type { LocationService, VisitorData } from './location.service';
 export function createAuthService({ apiClient, locationService }: { apiClient: ApiClient, locationService: LocationService }): AuthService {
 	const previousAttempt = { signature: "", nonce: "" };
 
-	const login = async (nonce: string, signature: string, visitorData: VisitorData) => {
+	const login = async (nonce: string, signature: string, visitorData?: VisitorData) => {
 		const data = await apiClient.loginUser(nonce, signature, visitorData);
 		return data;
 	};

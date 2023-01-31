@@ -178,7 +178,8 @@ function createIframePayload(payload: StringPayload, _user: User | null): Iframe
 		user: {
 			walletAddress: payload.userAddress,
 			id: _user?.id ?? "",
-			status: _user?.status ?? ""
+			status: _user?.status ?? "",
+			email: _user?.email ?? "",
 		}
 	};
 }
@@ -226,5 +227,6 @@ export interface IframePayload {
 		id: string;
 		walletAddress: string;
 		status: string;
+		email: string;
 	}
 }

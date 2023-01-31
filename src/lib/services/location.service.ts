@@ -24,20 +24,23 @@ export function createLocationService(options = {}): LocationService {
 		return fpInstance;
 	}
 
+
+	/** 
+	 * @param options extendedResult: boolean - if true, the result will contain additional data
+	 * @returns VisitorData if the request was successful, undefined otherwise
+	 */
 	async function getVisitorData(options = { extendedResult: true }) {
 		try {
 			const fp = await getFPInstance();
-			const visitorData = await fp.get(options);
-
-			return visitorData;
+			return await fp.get(options);
 		} catch (e) {
-			console.error('analytics service error:', e);
-			throw e;
+			console.debug('analytics service error:', e);
+			return;
 		}
 	}
 
 	return { getFPInstance, getVisitorData }
-};
+}
 
 export interface VisitorData {
 	visitorId?: string;
@@ -46,5 +49,5 @@ export interface VisitorData {
 
 export interface LocationService {
 	getFPInstance: () => Promise<FingerprintJS.Agent>;
-	getVisitorData: (options?: { extendedResult: boolean }) => Promise<VisitorData>;
+	getVisitorData: (options?: { extendedResult: boolean }) => Promise<VisitorData | undefined>;
 }
