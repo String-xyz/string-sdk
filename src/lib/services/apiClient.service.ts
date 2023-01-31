@@ -150,7 +150,7 @@ export function createApiClient({ apiKey, baseUrl, walletAddress }: ApiClientOpt
 			const error = _getErrorFromAxiosError(e);
 			throw error;
 		}
-	};
+	}
 
 	async function transact(transactPayload: TransactPayload) {
 		const headers = { 'X-Api-Key': apiKey };
@@ -261,6 +261,7 @@ export interface User {
 	tags: object;
 	createdAt: string;
 	updateAt: string;
+	email?: string;
 }
 
 export interface VisitorData {
