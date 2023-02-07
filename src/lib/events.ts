@@ -168,7 +168,7 @@ function createIframePayload(payload: StringPayload, _user: User | null): Iframe
 		name: payload.name,
 		price: payload.price,
 		currency: payload.currency,
-		collection: payload.collection,
+		collection: payload.collection ?? "",
 		imageSrc: payload.imageSrc,
 		imageAlt: payload?.imageAlt ?? "NFT"
 	};
@@ -216,7 +216,7 @@ export interface NFT {
 	name: string;
 	price: number;
 	currency: string;
-	collection: string;
+	collection?: string;
 	imageSrc: string;
 	imageAlt?: string;
 }

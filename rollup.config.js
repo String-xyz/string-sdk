@@ -11,7 +11,7 @@ config();
 
 const version = process.env.npm_package_version
 
-if (!process.env.VITE_IFRAME_URL || !process.env.VITE_API_URL) {
+if (!process.env.VITE_IFRAME_URL || !process.env.VITE_API_URL || !process.env.VITE_ANALYTICS_LIB_PK) {
 	throw Error("Missing variables in .env")
 }
 
