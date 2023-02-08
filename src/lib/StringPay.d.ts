@@ -1,7 +1,7 @@
 export interface StringPayload {
 	apiKey: string;
 	name: string;
-	collection: string;
+	collection?: string;
 	currency: string;
 	price: number;
 	imageSrc: string;
