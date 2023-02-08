@@ -1,9 +1,10 @@
-import { registerEvents, sendEvent, Events } from '$lib/events';
+import { createEventsService } from '$lib/events';
+import { createServices } from './services';
 
 export interface StringPayload {
 	apiKey: string;
 	name: string;
-	collection: string;
+	collection?: string;
 	currency: string;
 	price: number;
 	imageSrc: string;
@@ -15,20 +16,14 @@ export interface StringPayload {
 	contractReturn: string,
 	contractParameters: string[];
 	txValue: string;
+	gasLimit?: string;
 }
 
-const IFRAME_URL = import.meta.env.VITE_IFRAME_URL
+const IFRAME_URL = import.meta.env.VITE_IFRAME_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 const err = (msg: string) => {
 	console.error("[String Pay] " + msg)
-}
-
-const watchWalletChange = (frame: HTMLIFrameElement) => {
-	window.ethereum.on('accountsChanged', () => {
-		if (!frame) return;
-
-		sendEvent(frame, Events.UPDATE_USER)
-	})
 }
 
 export class StringPay {
@@ -37,60 +32,63 @@ export class StringPay {
 	payload?: StringPayload;
 	isLoaded = false;
 
-	onframeload = () => { };
-	onframeclose = () => { };
-	loadFrame(payload: StringPayload) {
-		const container = document.querySelector(".string-pay-frame");
-		if (!container) {
-			err("Unable to load String Frame, element 'string-pay-frame' does not exist");
-			return;
-		}
+	onFrameLoad = () => { };
+	onFrameClose = () => { };
+	async loadFrame(payload: StringPayload) {
+		// make sure there is a wallet connected
+		if (!window.ethereum || !window.ethereum.selectedAddress) return err("No wallet connected, please connect wallet");
 
+		const container = document.querySelector(".string-pay-frame");
+		if (!container) return err("Unable to load String Frame, element 'string-pay-frame' does not exist");
+
+		// Clear out any existing children
 		while (container.firstChild) {
 			container.removeChild(container.firstChild);
 		}
 
 		this.container = container;
 
-		if (!payload) {
-			err("No payload specified");
-			return;
-		}
-
-		if (!payload.apiKey) {
-			err("You must have an api key in your payload");
-			return;
-		}
-
-		if (payload.apiKey.slice(0, 4) !== "str.") {
-			err(`Invalid API Key: ${payload.apiKey}`);
-			return;
-		}
-
-		if (!payload.userAddress) {
-			err("No user address found, please connect wallet")
-			return;
-		}
-
-		if (!IFRAME_URL) {
-			err("IFRAME_URL not specified");
-			return;
-		}
+		// Validate payload
+		if (!payload) return err("No payload specified");
+		if (!payload.apiKey) return err("You must have an api key in your payload");
+		if (payload.apiKey.slice(0, 4) !== "str.") return err(`Invalid API Key: ${payload.apiKey}`);
+		if (!payload.userAddress) return err("No user address found, please connect wallet")
+		if (!IFRAME_URL) return err("IFRAME_URL not specified");
 
 		this.payload = payload;
 
-		registerEvents();
-
+		// Create iframe in dom
 		const iframe = document.createElement('iframe');
 		iframe.style.width = "100vh";
 		iframe.style.height = "700px";
 		iframe.style.overflow = "none";
-
 		iframe.src = IFRAME_URL;
 		container.appendChild(iframe);
 		this.frame = iframe;
 
-		watchWalletChange(this.frame);
+		// set the default gas limit
+		this.payload.gasLimit = "8000000"; // TODO: Do we want this value to change dynamically?
+
+
+		// Create services
+		const services = createServices({
+			apiKey: this.payload.apiKey,
+			walletAddress: this.payload.userAddress,
+			apiUrl: API_URL,
+		});
+
+		// since apiClient is a singleton, we can `globally` set the user address
+		services.apiClient.setWalletAddress(this.payload.userAddress);
+
+		const user = await services.authService.fetchLoggedInUser(this.payload.userAddress);
+
+		// Register events
+		const eventsService = createEventsService(this, services, user);
+		eventsService.registerEvents();
+		eventsService.watchWalletChange();
+
+		// init fp service
+		services.locationService.getFPInstance().catch(err => console.debug('getFPInstance error: ', err));
 	}
 }
 

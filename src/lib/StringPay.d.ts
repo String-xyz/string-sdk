@@ -1,7 +1,7 @@
 export interface StringPayload {
 	apiKey: string;
 	name: string;
-	collection: string;
+	collection?: string;
 	currency: string;
 	price: number;
 	imageSrc: string;
@@ -19,7 +19,7 @@ export declare class StringPay {
 	frame?: HTMLIFrameElement;
 	payload?: StringPayload;
 	isLoaded: boolean;
-	onframeload: () => void;
-	onframeclose: () => void;
+	onFrameLoad: () => void;
+	onFrameClose: () => void;
 	loadFrame(payload: StringPayload): void;
 }
