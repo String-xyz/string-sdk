@@ -1,3 +1,5 @@
+#Made by Frostbourne
+
 #Read env-prod or env-dev.txt based on command line flag
 # python publish.py --dev
 # python publish.py --prod
@@ -14,13 +16,19 @@
 import argparse
 import subprocess
 import re
+import sys
 
 from os import path, remove, makedirs, getcwd, pardir
 
-# parser = argparse.ArgumentParser(
-#                     prog = 'String SDK Publisher',
-#                     description = 'What the program does',
-#                     epilog = 'Text at the bottom of help')
+parser = argparse.ArgumentParser(
+	prog = 'publish.py',
+	description = 'String SDK Publisher')
+
+parser.add_argument("-p", "--prod", action="store_true", help="Publish to prod")
+parser.add_argument("-d", "--dev", action="store_true", help="Publish to dev")
+parser.add_argument("-a", "--all", action="store_true", help="Publish to both dev and prod")
+parser.add_argument("-u", "--use-env", action="store_true", help="Use sensitive vars from .env")
+parser.add_argument("-s", "--same-ver", action="store_true", help="Don't automatically increment version")
 
 verRegex = re.compile(r'(?<="version": ")(.*)(?=")')
 nameRegex = re.compile(r'(?<="name": ")(.*)(?=")')
@@ -29,6 +37,8 @@ prodName = "@stringpay/sdk"
 devName = "@stringpay/sdk-dev"
 
 sensitiveVars = ["VITE_ANALYTICS_LIB_PK="]
+
+useEnvSensitiveVars = False
 shouldIncrVer = True
 
 parentDir = path.abspath(path.join(getcwd(), pardir))
@@ -50,20 +60,39 @@ def removeCache():
 
 	remove("backup/env-user.txt")
 
+def resetPkgName():
+	with open("../package.json", "r+") as pkg:
+		lines = pkg.read()
+		pkg.seek(0)
+
+		lines = nameRegex.sub(prodName, lines)
+
+		pkg.write(lines)
+		pkg.truncate()
+
 def setEnv(flag):
 	print(f"Setting .env to env-{flag}")
 	with open(f"env-{flag}.txt", "r") as env:
+		lines = env.readlines()
+		env.seek(0)
+
 		# Check for missing env vars
-		for line in env.readlines():
+		for i, line in enumerate(lines):
 			line = line.strip()
 			if line.startswith("VITE_"):
 				eqIdx = line.find("=")
 				if not line[eqIdx + 1:]:
-					raise Exception(f"Missing {line[:eqIdx]} in env-{flag}.txt")
+					if useEnvSensitiveVars:
+						with open("../.env", "r") as userenv:
+							for userEnvLine in userenv.readlines():
+								userEnvLine = userEnvLine.strip()
+								if userEnvLine.startswith(line[:eqIdx]):
+									lines[i] = userEnvLine
+					else:	
+						raise Exception(f"Missing {line[:eqIdx]} in env-{flag}.txt")
 
-		env.seek(0)
 		with open("../.env", "w") as userenv:
-			userenv.write(env.read())
+			userenv.writelines(lines)
 
 def expungeSensitiveVars(flag):
 	print(f"Removing sensitive data from env-{flag}.txt")
@@ -138,9 +167,11 @@ def publishNPM(dryrun = True):
 
 		if response.lower() == "y":
 			publishNPM(dryrun = False)
+		else:
+			print("Ok, not publishing")
 
 def publishProd():
-	print("Publishing to " + prodName)
+	print("--------Publishing to " + prodName)
 	cacheEnv()
 	setEnv("prod")
 	updatePkg("prod")
@@ -149,19 +180,43 @@ def publishProd():
 	publishNPM()
 
 def publishDev():
-	print("Publishing to " + devName)
+	print("--------Publishing to " + devName)
 	cacheEnv()
 	setEnv("dev")
 	updatePkg("dev")
 	bundle()
 	removeCache()
 	publishNPM()
+	resetPkgName()
 
 def main():
+	if len(sys.argv) < 2:
+		parser.print_help()
+		sys.exit(1)
+	
+	args = parser.parse_args()
+
+	global shouldIncrVer
+	global useEnvSensitiveVars
+
+	if (args.same_ver):
+		shouldIncrVer = False
+
+	if (args.use_env):
+		useEnvSensitiveVars = True
+	
 	makedirs("backup/", exist_ok=True)
 
-	publishDev()
+	if (args.prod):
+		publishProd()
+	elif (args.dev):
+		publishDev()
+	elif (args.all):
+		publishDev()
+		publishProd()
+
 	expungeSensitiveVars("prod")
 	expungeSensitiveVars("dev")
 
+	print("Thanks for using the Automated String SDK Publisher")
 main()
