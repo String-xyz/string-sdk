@@ -193,7 +193,10 @@ def main():
 	if len(sys.argv) < 2:
 		parser.print_help()
 		sys.exit(1)
-	
+
+	if "scripts" not in getcwd():
+		raise Exception("You must run this script from the string-sdk/scripts folder")
+
 	args = parser.parse_args()
 
 	global shouldIncrVer
