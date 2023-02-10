@@ -35,28 +35,29 @@ export class StringPay {
 	onFrameLoad = () => { };
 	onFrameClose = () => { };
 	async loadFrame(payload: StringPayload) {
+		console.debug("SDK :: Loading frame", payload);
 		// make sure there is a wallet connected
 		if (!window.ethereum || !window.ethereum.selectedAddress) return err("No wallet connected, please connect wallet");
-
+		
 		const container = document.querySelector(".string-pay-frame");
 		if (!container) return err("Unable to load String Frame, element 'string-pay-frame' does not exist");
-
+		
 		// Clear out any existing children
 		while (container.firstChild) {
 			container.removeChild(container.firstChild);
 		}
+		console.debug("Query selectors", document.querySelectorAll(".string-pay-frame"));
 
-		this.container = container;
-
+		
 		// Validate payload
 		if (!payload) return err("No payload specified");
 		if (!payload.apiKey) return err("You must have an api key in your payload");
 		if (payload.apiKey.slice(0, 4) !== "str.") return err(`Invalid API Key: ${payload.apiKey}`);
 		if (!payload.userAddress) return err("No user address found, please connect wallet")
 		if (!IFRAME_URL) return err("IFRAME_URL not specified");
-
+		
 		this.payload = payload;
-
+		
 		// Create iframe in dom
 		const iframe = document.createElement('iframe');
 		iframe.style.width = "100vh";
@@ -64,6 +65,7 @@ export class StringPay {
 		iframe.style.overflow = "none";
 		iframe.src = IFRAME_URL;
 		container.appendChild(iframe);
+		this.container = container;
 		this.frame = iframe;
 
 		// set the default gas limit

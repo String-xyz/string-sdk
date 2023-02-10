@@ -76,6 +76,7 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 	}
 
 	async function onIframeClose() {
+		console.debug('SDK :: onIframeClose');
 		stringPay.frame?.remove();
 		stringPay.frame = undefined;
 		stringPay.isLoaded = false;
@@ -142,6 +143,7 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 	}
 
 	const watchWalletChange = () => {
+		window.ethereum.removeAllListeners('accountsChanged');
 		window.ethereum.on('accountsChanged', (accounts: string[]) => {
 			services.apiClient.setWalletAddress(accounts[0]);
 			onIframeClose();
