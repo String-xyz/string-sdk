@@ -5,7 +5,8 @@ import type { QuoteRequestPayload, TransactPayload, User } from './services/apiC
 const CHANNEL = "STRING_PAY"
 const IFRAME_URL = new URL(import.meta.env.VITE_IFRAME_URL).origin;
 
-export function createEventsService(stringPay: StringPay, services: Services, user: User | null) {
+export function createEventsService(stringPay: StringPay, services: Services) {
+	console.log("--- SDK :: Creating events service", stringPay.payload?.apiKey);
 	const { authService, quoteService } = services;
 
 	if (!stringPay.frame || !stringPay.payload) {
@@ -58,17 +59,25 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 
 	const registerEvents = () => {
 		unregisterEvents();
-
+		
 		window.addEventListener('message', _handleEvent);
 	};
 
 	const unregisterEvents = () => {
-		window.removeEventListener('message', _handleEvent, false);
+		window.removeEventListener('message', _handleEvent);
 	};
 
 	/** -------------- EVENT HANDLERS  ---------------- */
 
 	async function onIframeReady() {
+		let user = null as User | null;
+		try {
+			user = await authService.fetchLoggedInUser(stringPayload.userAddress);
+			console.debug("fetchLoggedInUser", user);
+		} catch (e) {
+			console.debug("fetchLoggedInUser error", e);
+		}
+
 		const iframePayload = createIframePayload(stringPayload, user);
 		sendEvent(frame, Events.LOAD_PAYLOAD, iframePayload);
 		stringPay.isLoaded = true;

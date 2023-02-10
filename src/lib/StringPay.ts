@@ -78,10 +78,8 @@ export class StringPay {
 		// since apiClient is a singleton, we can `globally` set the user address
 		services.apiClient.setWalletAddress(this.payload.userAddress);
 
-		const user = await services.authService.fetchLoggedInUser(this.payload.userAddress);
-
 		// Register events
-		const eventsService = createEventsService(this, services, user);
+		const eventsService = createEventsService(this, services);
 		eventsService.registerEvents();
 		eventsService.watchWalletChange();
 
