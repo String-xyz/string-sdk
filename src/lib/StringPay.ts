@@ -53,7 +53,6 @@ export class StringPay {
 		if (payload.apiKey.slice(0, 4) !== "str.") return err(`Invalid API Key: ${payload.apiKey}`);
 		if (!payload.userAddress) return err("No user address found, please connect wallet")
 		if (!IFRAME_URL) return err("IFRAME_URL not specified");
-		
 		this.payload = payload;
 		
 		// Create iframe in dom
