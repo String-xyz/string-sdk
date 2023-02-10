@@ -54,7 +54,6 @@ export class StringPay {
 		if (!payload.userAddress) return err("No user address found, please connect wallet")
 		if (!IFRAME_URL) return err("IFRAME_URL not specified");
 		this.payload = payload;
-		
 		// Create iframe in dom
 		const iframe = document.createElement('iframe');
 		iframe.style.width = "100vh";
