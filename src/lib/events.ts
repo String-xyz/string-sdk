@@ -59,7 +59,7 @@ export function createEventsService(stringPay: StringPay, services: Services) {
 
 	const registerEvents = () => {
 		unregisterEvents();
-		
+ 
 		window.addEventListener('message', _handleEvent);
 	};
 
