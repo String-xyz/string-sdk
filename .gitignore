@@ -12,3 +12,4 @@ yarn-error.log
 .dev.env
 .prod.env
 .vscode/
+scripts/backup/
