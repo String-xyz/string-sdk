@@ -45,9 +45,7 @@ export class StringPay {
 		while (container.firstChild) {
 			container.removeChild(container.firstChild);
 		}
-
-		this.container = container;
-
+		
 		// Validate payload
 		if (!payload) return err("No payload specified");
 		if (!payload.apiKey) return err("You must have an api key in your payload");
@@ -55,6 +53,7 @@ export class StringPay {
 		if (!payload.userAddress) return err("No user address found, please connect wallet")
 		if (!IFRAME_URL) return err("IFRAME_URL not specified");
 
+		// Set payload
 		this.payload = payload;
 
 		// Create iframe in dom
@@ -64,6 +63,7 @@ export class StringPay {
 		iframe.style.overflow = "none";
 		iframe.src = IFRAME_URL;
 		container.appendChild(iframe);
+		this.container = container;
 		this.frame = iframe;
 
 		// set the default gas limit
@@ -80,10 +80,8 @@ export class StringPay {
 		// since apiClient is a singleton, we can `globally` set the user address
 		services.apiClient.setWalletAddress(this.payload.userAddress);
 
-		const user = await services.authService.fetchLoggedInUser(this.payload.userAddress);
-
 		// Register events
-		const eventsService = createEventsService(this, services, user);
+		const eventsService = createEventsService(this, services);
 		eventsService.registerEvents();
 		eventsService.watchWalletChange();
 

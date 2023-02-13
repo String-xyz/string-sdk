@@ -5,7 +5,7 @@ import type { QuoteRequestPayload, TransactPayload, User } from './services/apiC
 const CHANNEL = "STRING_PAY"
 const IFRAME_URL = new URL(import.meta.env.VITE_IFRAME_URL).origin;
 
-export function createEventsService(stringPay: StringPay, services: Services, user: User | null) {
+export function createEventsService(stringPay: StringPay, services: Services) {
 	const { authService, quoteService } = services;
 
 	if (!stringPay.frame || !stringPay.payload) {
@@ -30,6 +30,7 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 		if (!frame) {
 			err("a frame was not provided to sendEvent")
 		}
+
 		const stringEvent: StringEvent = { eventName, data, error };
 		const message = JSON.stringify({
 			channel: CHANNEL,
@@ -58,17 +59,24 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 
 	const registerEvents = () => {
 		unregisterEvents();
-
+ 
 		window.addEventListener('message', _handleEvent);
 	};
 
 	const unregisterEvents = () => {
-		window.removeEventListener('message', _handleEvent, false);
+		window.removeEventListener('message', _handleEvent);
 	};
 
 	/** -------------- EVENT HANDLERS  ---------------- */
 
 	async function onIframeReady() {
+		let user = null as User | null;
+		try {
+			user = await authService.fetchLoggedInUser(stringPayload.userAddress);
+		} catch (e) {
+			console.debug("fetchLoggedInUser error", e);
+		}
+
 		const iframePayload = createIframePayload(stringPayload, user);
 		sendEvent(frame, Events.LOAD_PAYLOAD, iframePayload);
 		stringPay.isLoaded = true;
@@ -76,6 +84,7 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 	}
 
 	async function onIframeClose() {
+		console.debug('SDK :: onIframeClose');
 		stringPay.frame?.remove();
 		stringPay.frame = undefined;
 		stringPay.isLoaded = false;
@@ -95,7 +104,7 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 			const { user } = await authService.loginOrCreateUser(stringPayload.userAddress);
 			sendEvent(frame, Events.RECEIVE_AUTHORIZE_USER, { user });
 		} catch (error: any) {
-			console.log('SDK :: onAuthorizeUser error: ', error);
+			console.debug('SDK :: onAuthorizeUser error: ', error);
 			sendEvent(frame, Events.RECEIVE_AUTHORIZE_USER, {}, error);
 		}
 	}
@@ -142,6 +151,7 @@ export function createEventsService(stringPay: StringPay, services: Services, us
 	}
 
 	const watchWalletChange = () => {
+		window.ethereum.removeAllListeners('accountsChanged');
 		window.ethereum.on('accountsChanged', (accounts: string[]) => {
 			services.apiClient.setWalletAddress(accounts[0]);
 			onIframeClose();
