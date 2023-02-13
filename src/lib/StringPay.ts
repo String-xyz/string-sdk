@@ -38,6 +38,7 @@ export class StringPay {
 		console.debug("SDK :: Loading frame", payload);
 		// make sure there is a wallet connected
 		if (!window.ethereum || !window.ethereum.selectedAddress) return err("No wallet connected, please connect wallet");
+
 		const container = document.querySelector(".string-pay-frame");
 		if (!container) return err("Unable to load String Frame, element 'string-pay-frame' does not exist");
 		// Clear out any existing children
