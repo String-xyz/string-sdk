@@ -30,6 +30,7 @@ export function createEventsService(stringPay: StringPay, services: Services) {
 		if (!frame) {
 			err("a frame was not provided to sendEvent")
 		}
+
 		const stringEvent: StringEvent = { eventName, data, error };
 		const message = JSON.stringify({
 			channel: CHANNEL,
@@ -72,7 +73,6 @@ export function createEventsService(stringPay: StringPay, services: Services) {
 		let user = null as User | null;
 		try {
 			user = await authService.fetchLoggedInUser(stringPayload.userAddress);
-			console.debug("fetchLoggedInUser", user);
 		} catch (e) {
 			console.debug("fetchLoggedInUser error", e);
 		}
@@ -104,7 +104,7 @@ export function createEventsService(stringPay: StringPay, services: Services) {
 			const { user } = await authService.loginOrCreateUser(stringPayload.userAddress);
 			sendEvent(frame, Events.RECEIVE_AUTHORIZE_USER, { user });
 		} catch (error: any) {
-			console.log('SDK :: onAuthorizeUser error: ', error);
+			console.debug('SDK :: onAuthorizeUser error: ', error);
 			sendEvent(frame, Events.RECEIVE_AUTHORIZE_USER, {}, error);
 		}
 	}
