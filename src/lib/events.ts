@@ -6,7 +6,6 @@ const CHANNEL = "STRING_PAY"
 const IFRAME_URL = new URL(import.meta.env.VITE_IFRAME_URL).origin;
 
 export function createEventsService(stringPay: StringPay, services: Services) {
-	console.log("--- SDK :: Creating events service", stringPay.payload?.apiKey);
 	const { authService, quoteService } = services;
 
 	if (!stringPay.frame || !stringPay.payload) {
