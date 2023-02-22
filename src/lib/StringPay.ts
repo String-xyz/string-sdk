@@ -1,94 +1,101 @@
-import { createEventsService } from '$lib/events';
-import { createServices } from './services';
+import { createServices, type Services } from "./services";
 
 export interface StringPayload {
-	apiKey: string;
-	name: string;
-	collection?: string;
-	currency: string;
-	price: number;
-	imageSrc: string;
-	imageAlt?: string;
-	chainID: number;
-	userAddress: string;
-	contractAddress: string;
-	contractFunction: string;
-	contractReturn: string,
-	contractParameters: string[];
-	txValue: string;
-	gasLimit?: string;
+    apiKey: string;
+    name: string;
+    collection?: string;
+    currency: string;
+    price: number;
+    imageSrc: string;
+    imageAlt?: string;
+    chainID: number;
+    userAddress: string;
+    contractAddress: string;
+    contractFunction: string;
+    contractReturn: string;
+    contractParameters: string[];
+    txValue: string;
+    gasLimit?: string;
 }
 
 const IFRAME_URL = import.meta.env.VITE_IFRAME_URL;
 const API_URL = import.meta.env.VITE_API_URL;
 
 const err = (msg: string) => {
-	console.error("[String Pay] " + msg)
-}
+    console.error("[String Pay] " + msg);
+};
 
 export class StringPay {
-	container?: Element;
-	frame?: HTMLIFrameElement;
-	payload?: StringPayload;
-	isLoaded = false;
+    container?: Element;
+    frame?: HTMLIFrameElement;
+    payload?: StringPayload;
+    isLoaded = false;
+    services: Services;
+    private _loadIframeCallback = () => {};
 
-	onFrameLoad = () => { };
-	onFrameClose = () => { };
-	async loadFrame(payload: StringPayload) {
-		// make sure there is a wallet connected
-		if (!window.ethereum || !window.ethereum.selectedAddress) return err("No wallet connected, please connect wallet");
+    constructor(loadIframeCallback: () => void) {
+        this._loadIframeCallback = loadIframeCallback;
+    }
 
-		const container = document.querySelector(".string-pay-frame");
-		if (!container) return err("Unable to load String Frame, element 'string-pay-frame' does not exist");
+    onFrameLoad = () => {};
+    onFrameClose = () => {};
 
-		// Clear out any existing children
-		while (container.firstChild) {
-			container.removeChild(container.firstChild);
-		}
-		
-		// Validate payload
-		if (!payload) return err("No payload specified");
-		if (!payload.apiKey) return err("You must have an api key in your payload");
-		if (payload.apiKey.slice(0, 4) !== "str.") return err(`Invalid API Key: ${payload.apiKey}`);
-		if (!payload.userAddress) return err("No user address found, please connect wallet")
-		if (!IFRAME_URL) return err("IFRAME_URL not specified");
+    async loadFrame(payload: StringPayload) {
+        // make sure there is a wallet connected
+        if (!window.ethereum || !window.ethereum.selectedAddress) return err("No wallet connected, please connect wallet");
 
-		// Set payload
-		this.payload = payload;
+        const container = document.querySelector(".string-pay-frame");
+        if (!container) return err("Unable to load String Frame, element 'string-pay-frame' does not exist");
 
-		// Create iframe in dom
-		const iframe = document.createElement('iframe');
-		iframe.style.width = "100vh";
-		iframe.style.height = "700px";
-		iframe.style.overflow = "none";
-		iframe.src = IFRAME_URL;
-		container.appendChild(iframe);
-		this.container = container;
-		this.frame = iframe;
+        // Clear out any existing children
+        while (container.firstChild) {
+            container.removeChild(container.firstChild);
+        }
 
-		// set the default gas limit
-		this.payload.gasLimit = "8000000"; // TODO: Do we want this value to change dynamically?
+        // Validate payload
+        if (!payload) return err("No payload specified");
+        if (!payload.apiKey) return err("You must have an api key in your payload");
+        if (payload.apiKey.slice(0, 4) !== "str.") return err(`Invalid API Key: ${payload.apiKey}`);
+        if (!payload.userAddress) return err("No user address found, please connect wallet");
+        if (!IFRAME_URL) return err("IFRAME_URL not specified");
 
+        // Set payload
+        this.payload = payload;
 
-		// Create services
-		const services = createServices({
-			apiKey: this.payload.apiKey,
-			walletAddress: this.payload.userAddress,
-			apiUrl: API_URL,
-		});
+        // Create iframe in dom
+        const iframe = document.createElement("iframe");
+        iframe.style.width = "100vh";
+        iframe.style.height = "700px";
+        iframe.style.overflow = "none";
+        iframe.src = IFRAME_URL;
+        container.appendChild(iframe);
+        this.container = container;
+        this.frame = iframe;
 
-		// since apiClient is a singleton, we can `globally` set the user address
-		services.apiClient.setWalletAddress(this.payload.userAddress);
+        // set the default gas limit
+        this.payload.gasLimit = "8000000"; // TODO: Do we want this value to change dynamically?
 
-		// Register events
-		const eventsService = createEventsService(this, services);
-		eventsService.registerEvents();
-		eventsService.watchWalletChange();
-
-		// init fp service
-		services.locationService.getFPInstance().catch(err => console.debug('getFPInstance error: ', err));
-	}
+        this._loadIframeCallback();
+    }
 }
 
-(<any>window).StringPay = new StringPay()
+function main() {
+    // This is the starting point of the library
+    // We create services that contain all the logic for the library
+    // StringPay is the main class that is exported to the user
+    // We also create a callback that is called when the iframe is loaded. This is used to register events
 
+    const services = createServices({
+        apiUrl: API_URL,
+    });
+
+    const loadIframeCallback = () => {
+        services.eventsService.unregisterEvents();
+        services.eventsService.registerEvents();
+    };
+
+    const stringPay = new StringPay(loadIframeCallback);
+    (<any>window).StringPay = stringPay;
+}
+
+main();
