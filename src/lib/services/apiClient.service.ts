@@ -295,11 +295,11 @@ export interface VisitorData {
 
 export interface Quote {
     timestamp: number;
-    baseUSD: number;
-    gasUSD: number;
-    tokenUSD: number;
-    serviceUSD: number;
-    totalUSD: number;
+    baseUSD: string;
+    gasUSD: string;
+    tokenUSD: string;
+    serviceUSD: string;
+    totalUSD: string;
     signature: string;
 }
 
