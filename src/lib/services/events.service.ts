@@ -165,7 +165,9 @@ export function createEventsService(authService: AuthService, quoteService: Quot
 
         try {
             const data = <{ userId: string, update: UserUpdate }>event.data;
-            await apiClient.updateUser(data.userId, data.update)
+            const user = await apiClient.updateUser(data.userId, data.update);
+
+            sendEvent(frame, Events.RECEIVE_UPDATE_USER, { user });
         } catch (error: any) {
             sendEvent(frame, Events.RECEIVE_UPDATE_USER, {}, error);
         }
