@@ -1,5 +1,5 @@
 import type { StringPay, StringPayload } from "../StringPay";
-import type { ApiClient, QuoteRequestPayload, TransactPayload, User } from "./apiClient.service";
+import type { ApiClient, QuoteRequestPayload, TransactPayload, User, UserUpdate } from "./apiClient.service";
 import type { AuthService } from "./auth.service";
 import type { LocationService } from "./location.service";
 import type { QuoteService } from "./quote.service";
@@ -16,6 +16,8 @@ export enum Events {
     RECEIVE_AUTHORIZE_USER = "receive_authorize_user",
     REQUEST_RETRY_LOGIN = "request_retry_login",
     RECEIVE_RETRY_LOGIN = "receive_retry_login",
+    REQUEST_UPDATE_USER = 'request_update_user',
+    RECEIVE_UPDATE_USER = 'receive_update_user',
     REQUEST_EMAIL_VERIFICATION = "request_email_verification",
     RECEIVE_EMAIL_VERIFICATION = "receive_email_verification",
     REQUEST_CONFIRM_TRANSACTION = "request_confirm_transaction",
@@ -88,6 +90,7 @@ export function createEventsService(authService: AuthService, quoteService: Quot
     eventHandlers[Events.IFRAME_RESIZE] = onIframeResize;
     eventHandlers[Events.REQUEST_AUTHORIZE_USER] = onAuthorizeUser;
     eventHandlers[Events.REQUEST_RETRY_LOGIN] = onRetryLogin;
+    eventHandlers[Events.REQUEST_UPDATE_USER] = onUpdateUser;
     eventHandlers[Events.REQUEST_EMAIL_VERIFICATION] = onEmailVerification;
     eventHandlers[Events.REQUEST_QUOTE_START] = onQuoteStart;
     eventHandlers[Events.REQUEST_QUOTE_STOP] = onQuoteStop;
@@ -154,6 +157,19 @@ export function createEventsService(authService: AuthService, quoteService: Quot
             sendEvent(frame, Events.RECEIVE_RETRY_LOGIN, { user });
         } catch (error) {
             sendEvent(frame, Events.RECEIVE_RETRY_LOGIN, {}, error);
+        }
+    }
+
+    async function onUpdateUser(event: StringEvent, { frame }: StringPay) {
+        if (!frame) throw new Error("Iframe not ready");
+
+        try {
+            const data = <{ userId: string, update: UserUpdate }>event.data;
+            const user = await apiClient.updateUser(data.userId, data.update);
+
+            sendEvent(frame, Events.RECEIVE_UPDATE_USER, { user });
+        } catch (error: any) {
+            sendEvent(frame, Events.RECEIVE_UPDATE_USER, {}, error);
         }
     }
 

@@ -268,7 +268,7 @@ interface AuthToken {
     expAt: string;
 }
 
-interface UserUpdate {
+export interface UserUpdate {
     walletAddress?: string;
     firstName?: string;
     middleName?: string;
