@@ -199,7 +199,9 @@ export function createApiClient({ baseUrl }: ApiClientOptions): ApiClient {
             const res = await request();
             return res;
         } catch (e: any) {
-            if ((e.status === 401 && e.data?.code === "MISSING_TOKEN") || e.data?.code === "TOKEN_EXPIRED") {
+            const originalRequest = e.config;
+
+            if (e.status === 401 && !_isRefreshTokenRequest(originalRequest)) {
                 const data = await refreshToken(_userWalletAddress);
                 if (data) {
                     // request again
@@ -208,6 +210,10 @@ export function createApiClient({ baseUrl }: ApiClientOptions): ApiClient {
             }
             throw e;
         }
+    }
+
+    function _isRefreshTokenRequest(request: any) {
+        return request.url === "/login/refresh";
     }
 
     return {
