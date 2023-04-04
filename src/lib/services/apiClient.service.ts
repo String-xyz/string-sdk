@@ -96,7 +96,7 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         }
     }
 
-    async function loginUser(nonce: string, signature: string, visitor?: VisitorData) {
+    async function loginUser(nonce: string, signature: string, visitor?: VisitorData, bypassDeviceCheck = false) {
         const headers = { "X-Api-Key": apiKey };
         const body = {
             nonce,
@@ -108,7 +108,7 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
             const { data } = await httpClient.post<{
                 authToken: AuthToken;
                 user: User;
-            }>(`/login/sign`, body, { headers });
+            }>(`/login/sign${bypassDeviceCheck ? "?bypassDevice=true" : ""}`, body, { headers });
             return data;
         } catch (e: any) {
             const error = _getErrorFromAxiosError(e);
@@ -240,7 +240,7 @@ export interface ApiClient {
     createUser: (nonce: string, signature: string, visitor?: VisitorData) => Promise<{ authToken: AuthToken; user: User }>;
     updateUser: (userId: string, userUpdate: UserUpdate) => Promise<User>;
     requestEmailVerification: (userId: string, email: string) => Promise<void>;
-    loginUser: (nonce: string, signature: string, visitor?: VisitorData) => Promise<{ authToken: AuthToken; user: User }>;
+    loginUser: (nonce: string, signature: string, visitor?: VisitorData, bypassDeviceCheck?: boolean) => Promise<{ authToken: AuthToken; user: User }>;
     refreshToken: (walletAddress: string) => Promise<{ authToken: AuthToken; user: User }>;
     logoutUser: () => Promise<void>;
     getUserStatus: (userId: string) => Promise<{ status: string }>;

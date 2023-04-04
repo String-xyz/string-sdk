@@ -22,6 +22,7 @@ export type StringSDKEnvironment = "PROD" | "SANDBOX" | "DEV" | "LOCAL";
 export interface StringOptions {
     env: StringSDKEnvironment;
     publicKey: string;
+    bypassDeviceCheck?: boolean;
 }
 
 type StringEnvDetails = {
@@ -73,7 +74,12 @@ export class StringPay {
         if (options.publicKey.slice(0, 4) !== "str.") return err(`Invalid API Key: ${options.publicKey}`);
 
         this._IFRAME_URL = envDetails.IFRAME_URL;
-        this.#services = createServices({ baseUrl: envDetails.API_URL, iframeUrl: envDetails.IFRAME_URL, apiKey: options.publicKey });
+        this.#services = createServices({
+            baseUrl: envDetails.API_URL,
+            iframeUrl: envDetails.IFRAME_URL,
+            apiKey: options.publicKey,
+            bypassDeviceCheck: options.bypassDeviceCheck
+        });
     }
 
     async loadFrame(payload: StringPayload) {
