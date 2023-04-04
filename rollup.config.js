@@ -11,8 +11,29 @@ config();
 
 const version = process.env.npm_package_version
 
-if (!process.env.VITE_IFRAME_URL || !process.env.VITE_API_URL || !process.env.VITE_ANALYTICS_LIB_PK) {
-	throw Error("Missing variables in .env")
+const ENV_TABLE = [
+	{ name: 'PROD_IFRAME_URL', value: process.env.PROD_IFRAME_URL },
+	{ name: 'PROD_API_URL', value: process.env.PROD_API_URL },
+	{ name: 'SBOX_IFRAME_URL', value: process.env.SBOX_IFRAME_URL },
+	{ name: 'SBOX_API_URL', value: process.env.SBOX_API_URL },
+	{ name: 'DEV_IFRAME_URL', value: process.env.DEV_IFRAME_URL },
+	{ name: 'DEV_API_URL', value: process.env.DEV_API_URL },
+	{ name: 'LOCAL_IFRAME_URL', value: process.env.LOCAL_IFRAME_URL },
+	{ name: 'LOCAL_API_URL', value: process.env.LOCAL_API_URL },
+]
+
+for (const env of ENV_TABLE) {
+	if (!env.value) {
+		throw Error(`Missing ${env.name} in .env`)
+	}
+}
+
+if (!process.env.VITE_ANALYTICS_LIB_PK) {
+	throw Error(`Missing VITE_ANALYTICS_LIB_PK in .env`)
+}
+
+if (!process.env.VITE_ANALYTICS_SUBDOMAIN_URL) {
+	throw Error(`Missing VITE_ANALYTICS_SUBDOMAIN_URL in .env`)
 }
 
 export default {
@@ -30,9 +51,12 @@ export default {
 		resolve({ jsnext: true, preferBuiltins: true, browser: true }),
 		replace({
 			values: {
-				'import.meta.env.VITE_IFRAME_URL': JSON.stringify(new URL(process.env.VITE_IFRAME_URL).origin),
-				'import.meta.env.VITE_API_URL': JSON.stringify(new URL(process.env.VITE_API_URL).origin),
+				...ENV_TABLE.reduce((acc, env) => {
+					acc[`import.meta.env.${env.name}`] = JSON.stringify(new URL(env.value).origin);
+					return acc
+				}, {}),
 				'import.meta.env.VITE_ANALYTICS_LIB_PK': JSON.stringify(process.env.VITE_ANALYTICS_LIB_PK),
+				'import.meta.env.VITE_ANALYTICS_SUBDOMAIN_URL': JSON.stringify(process.env.VITE_ANALYTICS_SUBDOMAIN_URL),
 			},
 			preventAssignment: true
 		}),

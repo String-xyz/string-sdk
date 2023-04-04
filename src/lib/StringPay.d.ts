@@ -1,6 +1,4 @@
 export interface StringPayload {
-    options?: StringOptions;
-    apiKey: string;
     name: string;
     collection?: string;
     currency: string;
@@ -17,16 +15,21 @@ export interface StringPayload {
     gasLimit?: string;
 }
 
+export type StringSDKEnvironment = "PROD" | "SANDBOX" | "DEV" | "LOCAL";
+
 export interface StringOptions {
+    env: StringSDKEnvironment;
+    publicKey: string;
     bypassDeviceCheck?: boolean;
 }
 
 export declare class StringPay {
-	container?: Element;
-	frame?: HTMLIFrameElement;
-	payload?: StringPayload;
 	isLoaded: boolean;
+	payload?: StringPayload;
+	frame?: HTMLIFrameElement;
+	container?: Element;
 	onFrameLoad: () => void;
 	onFrameClose: () => void;
+	init(options: StringOptions): void;
 	loadFrame(payload: StringPayload): void;
 }

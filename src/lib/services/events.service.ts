@@ -5,7 +5,6 @@ import type { LocationService } from "./location.service";
 import type { QuoteService } from "./quote.service";
 
 const CHANNEL = "STRING_PAY";
-const IFRAME_URL = new URL(import.meta.env.VITE_IFRAME_URL).origin;
 
 export enum Events {
     LOAD_PAYLOAD = "load_payload",
@@ -29,47 +28,7 @@ export enum Events {
 
 const eventHandlers: Record<string, (event: StringEvent, stringPay: StringPay) => void> = {};
 
-const _handleEvent = async (e: any) => {
-    if (e.origin !== IFRAME_URL) return;
-
-    const stringPay: StringPay = (<any>window).StringPay;
-
-    try {
-        const payload = JSON.parse(e.data);
-        const channel = payload.channel;
-        const event = <StringEvent>payload.event;
-        if (channel === CHANNEL) {
-            const handler = eventHandlers[event.eventName];
-            if (handler) await handler(event, stringPay);
-            else console.debug("SDK :: Unhandled event: ", event);
-        }
-    } catch (error) {
-        console.error("sdk: _handleEvent error: ", error);
-    }
-};
-
-const registerEvents = () => {
-    unregisterEvents();
-
-    window.addEventListener("message", _handleEvent);
-};
-
-const unregisterEvents = () => {
-    window.removeEventListener("message", _handleEvent);
-};
-
-function cleanup() {
-    unregisterEvents();
-
-    if ((<any>window).StringPay) {
-        (<any>window).StringPay.frame?.remove();
-        (<any>window).StringPay.frame = undefined;
-        (<any>window).StringPay.isLoaded = false;
-        (<any>window).StringPay.onFrameClose();
-    }
-}
-
-export function createEventsService(authService: AuthService, quoteService: QuoteService, apiClient: ApiClient, locationService: LocationService) {
+export function createEventsService(iframeUrl: string, authService: AuthService, quoteService: QuoteService, apiClient: ApiClient, locationService: LocationService) {
     const sendEvent = <T = any>(frame: HTMLIFrameElement, eventName: string, data?: T, error?: any) => {
         if (!frame) {
             err("a frame was not provided to sendEvent");
@@ -83,6 +42,46 @@ export function createEventsService(authService: AuthService, quoteService: Quot
 
         frame.contentWindow?.postMessage(message, "*");
     };
+
+    const _handleEvent = async (e: any) => {
+        if (e.origin !== iframeUrl) return;
+    
+        const stringPay: StringPay = (<any>window).StringPay;
+    
+        try {
+            const payload = JSON.parse(e.data);
+            const channel = payload.channel;
+            const event = <StringEvent>payload.event;
+            if (channel === CHANNEL) {
+                const handler = eventHandlers[event.eventName];
+                if (handler) await handler(event, stringPay);
+                else console.debug("SDK :: Unhandled event: ", event);
+            }
+        } catch (error) {
+            console.error("sdk: _handleEvent error: ", error);
+        }
+    };
+
+    const registerEvents = () => {
+        unregisterEvents();
+    
+        window.addEventListener("message", _handleEvent);
+    };
+    
+    const unregisterEvents = () => {
+        window.removeEventListener("message", _handleEvent);
+    };
+
+    function cleanup() {
+        unregisterEvents();
+    
+        if ((<any>window).StringPay) {
+            (<any>window).StringPay.frame?.remove();
+            (<any>window).StringPay.frame = undefined;
+            (<any>window).StringPay.isLoaded = false;
+            (<any>window).StringPay.onFrameClose();
+        }
+    }
 
     //
     eventHandlers[Events.IFRAME_READY] = onIframeReady;
@@ -104,8 +103,6 @@ export function createEventsService(authService: AuthService, quoteService: Quot
         if (!stringPay.frame || !stringPay.payload) throw new Error("Iframe not ready");
 
         apiClient.setWalletAddress(stringPay.payload.userAddress);
-        apiClient.setApiKey(stringPay.payload.apiKey);
-        authService.setBypassDeviceCheck(stringPay.payload.options?.bypassDeviceCheck);
 
         // init fp service
         locationService.getFPInstance().catch((err) => console.debug("getFPInstance error: ", err));

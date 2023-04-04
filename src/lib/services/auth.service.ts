@@ -1,17 +1,11 @@
 import type { ApiClient, User } from './apiClient.service';
 import type { LocationService, VisitorData } from './location.service';
 
-export function createAuthService({ apiClient, locationService }: { apiClient: ApiClient, locationService: LocationService }): AuthService {
+export function createAuthService({ apiClient, locationService, bypassDeviceCheck }: AuthServiceParams): AuthService {
 	const previousAttempt = { signature: "", nonce: "" };
 
-	let _bypassDeviceCheck = false;
-
-	const setBypassDeviceCheck = (value?: boolean) => {
-		_bypassDeviceCheck = value || false;
-	};
-	
 	const login = async (nonce: string, signature: string, visitorData?: VisitorData) => {
-		const data = await apiClient.loginUser(nonce, signature, visitorData, _bypassDeviceCheck);
+		const data = await apiClient.loginUser(nonce, signature, visitorData, bypassDeviceCheck);
 		return data;
 	};
 
@@ -85,9 +79,14 @@ export function createAuthService({ apiClient, locationService }: { apiClient: A
 		loginOrCreateUser,
 		fetchLoggedInUser,
 		retryLogin,
-		logout,
-		setBypassDeviceCheck
+		logout
 	};
+}
+
+export interface AuthServiceParams {
+	apiClient: ApiClient;
+	locationService: LocationService;
+	bypassDeviceCheck: boolean;
 }
 
 export interface AuthService {
@@ -95,5 +94,4 @@ export interface AuthService {
 	fetchLoggedInUser: (walletAddress: string) => Promise<User | null>;
 	retryLogin: () => Promise<{ user: User }>;
 	logout: () => Promise<any>;
-	setBypassDeviceCheck: (value?: boolean) => void;
 }

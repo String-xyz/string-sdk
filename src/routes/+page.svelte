@@ -9,7 +9,6 @@
 	const signerAddress = writable("");
 
 	$: payload = {
-		apiKey,
 		name: "String Demo NFT",
 		collection: "String Demo",
 		imageSrc:
@@ -29,6 +28,16 @@
 	$: disabled = !$signerAddress;
 
 	onMount(async () => {
+		if (!window.StringPay) {
+			console.error("[String Pay] Cannot find stringpay module in DOM");
+		}
+
+		window.StringPay.init({
+			env: "LOCAL",
+			publicKey: apiKey
+		});
+
+
 		const accounts = await window.ethereum.request({
 			method: "eth_requestAccounts",
 		});

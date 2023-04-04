@@ -1,6 +1,6 @@
 import * as FingerprintJS from '@fingerprintjs/fingerprintjs-pro';
 
-const CUSTOM_SUBDOMAIN = "https://metrics.string.xyz";
+const CUSTOM_SUBDOMAIN = import.meta.env.VITE_ANALYTICS_SUBDOMAIN_URL || "";
 const apiKey = import.meta.env.VITE_ANALYTICS_LIB_PK || "";
 
 export function createLocationService(options = {}): LocationService {
