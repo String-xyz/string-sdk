@@ -53,10 +53,10 @@ const err = (msg: string) => {
 };
 
 export class StringPay {
-    container?: Element;
-    frame?: HTMLIFrameElement;
-    payload?: StringPayload;
     isLoaded = false;
+    payload?: StringPayload;
+    frame?: HTMLIFrameElement;
+    container?: Element;
     #services: Services;
     private _IFRAME_URL: string;
 
@@ -91,7 +91,8 @@ export class StringPay {
         // Validate payload
         if (!payload) return err("No payload specified");
         if (!payload.userAddress) return err("No user address found, please connect wallet");
-        if (!this._IFRAME_URL) return err("IFRAME_URL not specified");
+        if (!this._IFRAME_URL) return err("IFRAME_URL not specified. Did you call init()?");
+        if (!this.#services) return err("Services not initialized. Did you call init()?");
 
         // Set payload
         this.payload = payload;
