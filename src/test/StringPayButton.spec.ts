@@ -15,7 +15,7 @@ describe("StringPayButton.svelte", () => {
         container.classList.add("string-pay-frame");
         document.body.appendChild(container);
 
-        (<any>window).StringPay = new StringPay(() => {});
+        (<any>window).StringPay = new StringPay();
 
         render(StringPayButton, { payload: testPayload });
         const button = screen.getByRole("button");

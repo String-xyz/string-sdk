@@ -4,7 +4,7 @@ import { Events } from "$lib/services/events.service";
 
 describe.skip("Events.ts", () => {
     beforeEach(() => {
-        (<any>window).StringPay = new StringPay(() => {});
+        (<any>window).StringPay = new StringPay();
 
         window.StringPay.frame = document.createElement("iframe");
         window.StringPay.payload = testPayload;

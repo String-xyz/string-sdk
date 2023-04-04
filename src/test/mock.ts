@@ -1,10 +1,8 @@
 import type { StringPayload } from '../lib/StringPay';
 
-const apiKey = import.meta.env.VITE_STRING_API_KEY
 const userAddr = "0x000000"
 
 export const testPayload: StringPayload = {
-	apiKey,
 	name: "String Demo NFT",
 	collection: "String Demo",
 	imageSrc: "https://gateway.pinata.cloud/ipfs/bafybeibtmy26mac47n5pp6srds76h74riqs76erw24p5yvdhmwu7pxlcx4/STR_Logo_1.png",
