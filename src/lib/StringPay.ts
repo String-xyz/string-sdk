@@ -78,7 +78,7 @@ export class StringPay {
             baseUrl: envDetails.API_URL,
             iframeUrl: envDetails.IFRAME_URL,
             apiKey: options.publicKey,
-            bypassDeviceCheck: options.bypassDeviceCheck
+            bypassDeviceCheck: options.bypassDeviceCheck ?? false
         });
     }
 
