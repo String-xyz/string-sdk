@@ -1,5 +1,3 @@
-import { init } from "svelte/internal";
-
 export interface StringPayload {
     name: string;
     collection?: string;
