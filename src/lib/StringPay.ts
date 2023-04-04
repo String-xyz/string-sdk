@@ -1,6 +1,7 @@
 import { createServices, type Services } from "./services";
 
 export interface StringPayload {
+    options?: StringOptions
     apiKey: string;
     name: string;
     collection?: string;
@@ -16,6 +17,10 @@ export interface StringPayload {
     contractParameters: string[];
     txValue: string;
     gasLimit?: string;
+}
+
+export interface StringOptions {
+    bypassDeviceCheck?: boolean;
 }
 
 const IFRAME_URL = import.meta.env.VITE_IFRAME_URL;

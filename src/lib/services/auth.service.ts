@@ -4,8 +4,14 @@ import type { LocationService, VisitorData } from './location.service';
 export function createAuthService({ apiClient, locationService }: { apiClient: ApiClient, locationService: LocationService }): AuthService {
 	const previousAttempt = { signature: "", nonce: "" };
 
+	let _bypassDeviceCheck = false;
+
+	const setBypassDeviceCheck = (value?: boolean) => {
+		_bypassDeviceCheck = value || false;
+	};
+	
 	const login = async (nonce: string, signature: string, visitorData?: VisitorData) => {
-		const data = await apiClient.loginUser(nonce, signature, visitorData);
+		const data = await apiClient.loginUser(nonce, signature, visitorData, _bypassDeviceCheck);
 		return data;
 	};
 
@@ -42,8 +48,7 @@ export function createAuthService({ apiClient, locationService }: { apiClient: A
 		if (!previousAttempt.signature) throw { code: "UNAUTHORIZED" };
 
 		const visitorData = await locationService.getVisitorData();
-		const data = await apiClient.loginUser(previousAttempt.nonce, previousAttempt.signature, visitorData);
-		return data;
+		return login(previousAttempt.nonce, previousAttempt.signature, visitorData);
 	};
 
 
@@ -78,15 +83,17 @@ export function createAuthService({ apiClient, locationService }: { apiClient: A
 
 	return {
 		loginOrCreateUser,
+		fetchLoggedInUser,
 		retryLogin,
 		logout,
-		fetchLoggedInUser
+		setBypassDeviceCheck
 	};
 }
 
 export interface AuthService {
 	loginOrCreateUser: (walletAddress: string) => Promise<{ user: User }>;
-	retryLogin: () => Promise<{ user: User }>;
 	fetchLoggedInUser: (walletAddress: string) => Promise<User | null>;
+	retryLogin: () => Promise<{ user: User }>;
 	logout: () => Promise<any>;
+	setBypassDeviceCheck: (value?: boolean) => void;
 }

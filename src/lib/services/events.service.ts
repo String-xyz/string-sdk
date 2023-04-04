@@ -105,6 +105,7 @@ export function createEventsService(authService: AuthService, quoteService: Quot
 
         apiClient.setWalletAddress(stringPay.payload.userAddress);
         apiClient.setApiKey(stringPay.payload.apiKey);
+        authService.setBypassDeviceCheck(stringPay.payload.options?.bypassDeviceCheck);
 
         // init fp service
         locationService.getFPInstance().catch((err) => console.debug("getFPInstance error: ", err));
