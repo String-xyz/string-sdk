@@ -2,9 +2,8 @@ import axios from "redaxios";
 
 // TODO: Fix timeout issue
 
-export function createApiClient({ baseUrl }: ApiClientOptions): ApiClient {
+export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClient {
     let _userWalletAddress = "";
-    let apiKey = "";
 
     const commonHeaders: any = {
         "Content-Type": "application/json",
@@ -18,7 +17,6 @@ export function createApiClient({ baseUrl }: ApiClientOptions): ApiClient {
     });
 
     const setWalletAddress = (addr: string) => (_userWalletAddress = addr);
-    const setApiKey = (key: string) => (apiKey = key);
 
     async function createApiKey() {
         const { data } = await httpClient.post<{ apiKey: string }>("/apikeys");
@@ -230,8 +228,7 @@ export function createApiClient({ baseUrl }: ApiClientOptions): ApiClient {
         getUserStatus,
         getQuote,
         transact,
-        setWalletAddress,
-        setApiKey,
+        setWalletAddress
     };
 }
 
@@ -250,7 +247,6 @@ export interface ApiClient {
     getQuote: (payload: QuoteRequestPayload) => Promise<TransactPayload>;
     transact: (quote: TransactPayload) => Promise<TransactionResponse>;
     setWalletAddress: (walletAddress: string) => void;
-    setApiKey: (apiKey: string) => void;
 }
 
 interface ApiKeyResponse {
@@ -339,4 +335,5 @@ export interface QuoteRequestPayload {
 
 export interface ApiClientOptions {
     baseUrl: string;
+    apiKey: string;
 }
