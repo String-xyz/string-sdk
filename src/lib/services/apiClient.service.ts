@@ -9,6 +9,10 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         "Content-Type": "application/json",
     };
 
+    const authHeaders: any = {
+        "X-Api-Key": apiKey,
+    }
+
     const httpClient = axios.create({
         baseURL: baseUrl,
         headers: commonHeaders,
@@ -18,31 +22,15 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
 
     const setWalletAddress = (addr: string) => (_userWalletAddress = addr);
 
-    async function createApiKey() {
-        const { data } = await httpClient.post<{ apiKey: string }>("/apikeys");
-        return data;
-    }
-
-    async function getApiKeys(limit = 10) {
-        const { data } = await httpClient.get<ApiKeyResponse[]>("/apikeys", {
-            params: { limit },
-        });
-        return data;
-    }
-
-    async function validateApiKey(keyId: string) {
-        const { data } = await httpClient.post<{ Status: string }>(`/apikeys/${keyId}/approve`);
-        return data;
-    }
-
     async function requestLogin(walletAddress: string) {
         setWalletAddress(walletAddress);
+
         try {
-            const headers = { "X-Api-Key": apiKey };
             const { data } = await httpClient.get<{ nonce: string }>(`/login`, {
                 params: { walletAddress: _userWalletAddress },
-                headers,
+                headers: authHeaders,
             });
+
             return data;
         } catch (e: any) {
             const error = _getErrorFromAxiosError(e);
@@ -51,7 +39,6 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
     }
 
     async function createUser(nonce: string, signature: string, visitor?: VisitorData) {
-        const headers = { "X-Api-Key": apiKey };
         const body = {
             nonce,
             signature,
@@ -59,10 +46,9 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         };
 
         try {
-            const { data } = await httpClient.post<{
-                authToken: AuthToken;
-                user: User;
-            }>(`/users`, body, { headers });
+            const { data } = await httpClient.post<AuthResponse>(`/users`, body, {
+                headers: authHeaders,
+            });
             return data;
         } catch (e: any) {
             const error = _getErrorFromAxiosError(e);
@@ -71,20 +57,21 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
     }
 
     async function updateUser(userId: string, update: UserUpdate) {
-        const request = () =>
-            httpClient.put<User>(`/users/${userId}`, update, {
-                headers: { "X-Api-Key": apiKey },
-            });
+        try {
+            const request = () => httpClient.put<User>(`/users/${userId}`, update);
+            const { data } = await authInterceptor<{ data: User }>(request);
 
-        const { data } = await authInterceptor<{ data: User }>(request);
-        return data;
+            return data;
+        } catch (e: any) {
+            const error = _getErrorFromAxiosError(e);
+            throw error;
+        }
     }
 
     async function requestEmailVerification(userId: string, email: string) {
         try {
             const request = () =>
                 httpClient.get(`/users/${userId}/verify-email`, {
-                    headers: { "X-Api-Key": apiKey },
                     params: { email },
                     // timeout: 15 * 60 * 1000 // 15 minutes
                 });
@@ -97,18 +84,18 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
     }
 
     async function loginUser(nonce: string, signature: string, visitor?: VisitorData, bypassDeviceCheck = false) {
-        const headers = { "X-Api-Key": apiKey };
         const body = {
             nonce,
             signature,
             fingerprint: visitor,
         };
 
+        const bypassDevice = bypassDeviceCheck ? "?bypassDevice=true" : "";
+
         try {
-            const { data } = await httpClient.post<{
-                authToken: AuthToken;
-                user: User;
-            }>(`/login/sign${bypassDeviceCheck ? "?bypassDevice=true" : ""}`, body, { headers });
+            const { data } = await httpClient.post<AuthResponse>(`/login/sign${bypassDevice}`, body, {
+                headers: authHeaders,
+            });
             return data;
         } catch (e: any) {
             const error = _getErrorFromAxiosError(e);
@@ -117,13 +104,12 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
     }
 
     async function refreshToken(walletAddress: string) {
-        const headers = { "X-Api-Key": apiKey };
         try {
-            const { data } = await httpClient.post<{
-                authToken: AuthToken;
-                user: User;
-            }>(`/login/refresh`, { walletAddress }, { headers });
-            console.log(" - Token was refreshed");
+            const { data } = await httpClient.post<AuthResponse>(`/login/refresh`, { walletAddress }, {
+                headers: authHeaders,
+            });
+            console.debug(" - Token was refreshed");
+
             return data;
         } catch (e: any) {
             const error = _getErrorFromAxiosError(e);
@@ -132,11 +118,9 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
     }
 
     async function logoutUser() {
-        const headers = { "X-Api-Key": apiKey };
         try {
-            const { status } = await httpClient.post(`/login/logout`, {}, { headers });
-            if (status === 204) return;
-            else throw new Error("logout failed");
+            const { status } = await httpClient.post(`/login/logout`);
+            if (status !== 204) throw new Error("logout failed");
         } catch (e: any) {
             const error = _getErrorFromAxiosError(e);
             throw error;
@@ -144,13 +128,12 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
     }
 
     async function getUserStatus(userId: string) {
-        if (!userId) throw new Error("userId is required");
-        const headers = { "X-Api-Key": apiKey };
         try {
-            const request = () => httpClient.get(`/users/${userId}/status`, { headers });
+            const request = () => httpClient.get(`/users/${userId}/status`);
             const { data } = await authInterceptor<{
                 data: { status: string };
             }>(request);
+
             return data;
         } catch (e: any) {
             const error = _getErrorFromAxiosError(e);
@@ -159,10 +142,10 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
     }
 
     async function getQuote(payload: QuoteRequestPayload) {
-        const headers = { "X-Api-Key": apiKey };
         try {
-            const request = () => httpClient.post(`/quotes`, payload, { headers });
+            const request = () => httpClient.post(`/quotes`, payload);
             const { data } = await authInterceptor<{ data: TransactPayload }>(request);
+
             return data;
         } catch (e: any) {
             const error = _getErrorFromAxiosError(e);
@@ -171,12 +154,12 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
     }
 
     async function transact(transactPayload: TransactPayload) {
-        const headers = { "X-Api-Key": apiKey };
         try {
-            const request = () => httpClient.post(`/transactions`, transactPayload, { headers });
+            const request = () => httpClient.post(`/transactions`, transactPayload);
             const { data } = await authInterceptor<{
                 data: TransactionResponse;
             }>(request);
+
             return data;
         } catch (e: any) {
             const error = _getErrorFromAxiosError(e);
@@ -215,9 +198,6 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
     }
 
     return {
-        createApiKey,
-        getApiKeys,
-        validateApiKey,
         requestLogin,
         createUser,
         updateUser,
@@ -233,29 +213,17 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
 }
 
 export interface ApiClient {
-    createApiKey: () => Promise<{ apiKey: string }>;
-    getApiKeys: () => Promise<ApiKeyResponse[]>;
-    validateApiKey: (keyId: string) => Promise<{ Status: string }>;
     requestLogin: (walletAddress: string) => Promise<{ nonce: string }>;
-    createUser: (nonce: string, signature: string, visitor?: VisitorData) => Promise<{ authToken: AuthToken; user: User }>;
+    createUser: (nonce: string, signature: string, visitor?: VisitorData) => Promise<AuthResponse>;
     updateUser: (userId: string, userUpdate: UserUpdate) => Promise<User>;
     requestEmailVerification: (userId: string, email: string) => Promise<void>;
-    loginUser: (nonce: string, signature: string, visitor?: VisitorData, bypassDeviceCheck?: boolean) => Promise<{ authToken: AuthToken; user: User }>;
-    refreshToken: (walletAddress: string) => Promise<{ authToken: AuthToken; user: User }>;
+    loginUser: (nonce: string, signature: string, visitor?: VisitorData, bypassDeviceCheck?: boolean) => Promise<AuthResponse>;
+    refreshToken: (walletAddress: string) => Promise<AuthResponse>;
     logoutUser: () => Promise<void>;
     getUserStatus: (userId: string) => Promise<{ status: string }>;
     getQuote: (payload: QuoteRequestPayload) => Promise<TransactPayload>;
     transact: (quote: TransactPayload) => Promise<TransactionResponse>;
     setWalletAddress: (walletAddress: string) => void;
-}
-
-interface ApiKeyResponse {
-    id: string;
-    status: string;
-    authType: string;
-    data: string;
-    createdAt: string;
-    updatedAt: string;
 }
 
 interface RefreshToken {
@@ -268,6 +236,11 @@ interface AuthToken {
     refreshToken: RefreshToken;
     issuedAt: string;
     expAt: string;
+}
+
+export interface AuthResponse {
+    authToken: AuthToken;
+    user: User;
 }
 
 export interface UserUpdate {
