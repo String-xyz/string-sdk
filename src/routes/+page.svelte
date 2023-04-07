@@ -34,7 +34,7 @@
 
 		window.StringPay.init({
 			env: "LOCAL",
-			publicKey: apiKey
+			publicKey: apiKey,
 		});
 
 
