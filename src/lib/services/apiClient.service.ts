@@ -7,8 +7,11 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
 
     const commonHeaders: any = {
         "Content-Type": "application/json",
-        "X-Api-Key": apiKey,
     };
+
+    const authHeaders: any = {
+        "X-Api-Key": apiKey,
+    }
 
     const httpClient = axios.create({
         baseURL: baseUrl,
@@ -25,6 +28,7 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         try {
             const { data } = await httpClient.get<{ nonce: string }>(`/login`, {
                 params: { walletAddress: _userWalletAddress },
+                headers: authHeaders,
             });
 
             return data;
@@ -42,7 +46,9 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         };
 
         try {
-            const { data } = await httpClient.post<AuthResponse>(`/users`, body);
+            const { data } = await httpClient.post<AuthResponse>(`/users`, body, {
+                headers: authHeaders,
+            });
             return data;
         } catch (e: any) {
             const error = _getErrorFromAxiosError(e);
@@ -87,7 +93,9 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         const bypassDevice = bypassDeviceCheck ? "?bypassDevice=true" : "";
 
         try {
-            const { data } = await httpClient.post<AuthResponse>(`/login/sign${bypassDevice}`, body);
+            const { data } = await httpClient.post<AuthResponse>(`/login/sign${bypassDevice}`, body, {
+                headers: authHeaders,
+            });
             return data;
         } catch (e: any) {
             const error = _getErrorFromAxiosError(e);
@@ -97,7 +105,9 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
 
     async function refreshToken(walletAddress: string) {
         try {
-            const { data } = await httpClient.post<AuthResponse>(`/login/refresh`, { walletAddress });
+            const { data } = await httpClient.post<AuthResponse>(`/login/refresh`, { walletAddress }, {
+                headers: authHeaders,
+            });
             console.debug(" - Token was refreshed");
 
             return data;
