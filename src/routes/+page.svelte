@@ -4,21 +4,25 @@
 	import { writable } from "svelte/store";
 	import { ethers } from "ethers";
 
-	const apiKey = import.meta.env.VITE_STRING_API_KEY;
-
 	const signerAddress = writable("");
 
+	const STR_API_KEY = import.meta.env.VITE_STRING_API_KEY;
+
+	const IPFS_GATEWAY = import.meta.env.VITE_IPFS_GATEWAY
+	const IPFS_CID = import.meta.env.VITE_IPFS_CID
+
+	const STR_NFT_SRC = `${IPFS_GATEWAY}${IPFS_CID}/Demo_Character_1.png`
+
 	$: payload = {
-		name: "String Demo NFT",
+		name: "String Test NFT [AVAX]",
 		collection: "String Demo",
-		imageSrc:
-			"https://gateway.pinata.cloud/ipfs/bafybeibtmy26mac47n5pp6srds76h74riqs76erw24p5yvdhmwu7pxlcx4/STR_Logo_1.png",
-		imageAlt: "NFT",
+		imageSrc: STR_NFT_SRC,
+		imageAlt: "String NFT",
 		currency: "AVAX",
 		price: 0.08,
 		chainID: 43113,
 		userAddress: $signerAddress,
-		contractAddress: "0x41e11fF9F71f51800F67cb913eA6Bc59d3F126Aa",
+		contractAddress: "0xea1ffe2cf6630a20e1ba397e95358daf362c8781",
 		contractFunction: "mintTo(address)",
 		contractReturn: "uint256",
 		contractParameters: [$signerAddress],
@@ -34,7 +38,7 @@
 
 		window.StringPay.init({
 			env: "LOCAL",
-			publicKey: apiKey,
+			publicKey: STR_API_KEY,
 		});
 
 
