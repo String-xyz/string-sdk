@@ -58,7 +58,7 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
 
     async function updateUser(userId: string, update: UserUpdate) {
         try {
-            const request = () => httpClient.put<User>(`/users/${userId}`, update);
+			const request = () => httpClient.patch<User>(`/users/${userId}`, update);
             const { data } = await authInterceptor<{ data: User }>(request);
 
             return data;
