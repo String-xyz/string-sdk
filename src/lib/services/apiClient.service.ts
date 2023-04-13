@@ -11,7 +11,7 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
 
     const authHeaders: any = {
         "X-Api-Key": apiKey,
-    }
+    };
 
     const httpClient = axios.create({
         baseURL: baseUrl,
@@ -58,7 +58,7 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
 
     async function updateUser(userId: string, update: UserUpdate) {
         try {
-            const request = () => httpClient.put<User>(`/users/${userId}`, update);
+            const request = () => httpClient.patch<User>(`/users/${userId}`, update);
             const { data } = await authInterceptor<{ data: User }>(request);
 
             return data;
@@ -105,9 +105,13 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
 
     async function refreshToken(walletAddress: string) {
         try {
-            const { data } = await httpClient.post<AuthResponse>(`/login/refresh`, { walletAddress }, {
-                headers: authHeaders,
-            });
+            const { data } = await httpClient.post<AuthResponse>(
+                `/login/refresh`,
+                { walletAddress },
+                {
+                    headers: authHeaders,
+                },
+            );
             console.debug(" - Token was refreshed");
 
             return data;
@@ -208,7 +212,7 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         getUserStatus,
         getQuote,
         transact,
-        setWalletAddress
+        setWalletAddress,
     };
 }
 
