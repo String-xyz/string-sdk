@@ -145,9 +145,10 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         }
     }
 
-    async function getQuote(request: TransactionRequest) {
+    async function getQuote(payload: TransactionRequest) {
         try {
-            const request = () => httpClient.post(`/quotes`, request);
+            console.log("getQuote", payload)
+            const request = () => httpClient.post(`/quotes`, payload);
             const { data } = await authInterceptor<{ data: Quote }>(request);
 
             return data;
@@ -157,9 +158,10 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         }
     }
 
-    async function transact(request: ExecutionRequest) {
+    async function transact(payload: ExecutionRequest) {
         try {
-            const request = () => httpClient.post(`/transactions`, request);
+            console.log("transact", payload)
+            const request = () => httpClient.post(`/transactions`, payload);
             const { data } = await authInterceptor<{
                 data: TransactionResponse;
             }>(request);
