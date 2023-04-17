@@ -1,5 +1,5 @@
 import type { StringPay, StringPayload } from "../StringPay";
-import type { ApiClient, QuoteRequestPayload, TransactPayload, User, UserUpdate } from "./apiClient.service";
+import type { ApiClient, ExecutionRequest, TransactionRequest, Quote, PaymentInfo, User, UserUpdate } from "./apiClient.service";
 import type { AuthService } from "./auth.service";
 import type { LocationService } from "./location.service";
 import type { QuoteService } from "./quote.service";
@@ -188,9 +188,9 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
     async function onQuoteStart(event: StringEvent, { frame, payload }: StringPay) {
         if (!frame) throw new Error("Iframe not ready");
 
-        const quotePayload = <QuoteRequestPayload>payload;
+        const quotePayload = <TransactionRequest>payload;
 
-        const callback = (quote: TransactPayload) => sendEvent(frame, Events.QUOTE_CHANGED, { quote });
+        const callback = (quote: Quote) => sendEvent(frame, Events.QUOTE_CHANGED, { quote });
         quoteService.startQuote(quotePayload, callback);
     }
 
@@ -202,7 +202,10 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
         if (!frame) throw new Error("Iframe not ready");
 
         try {
-            const data = <TransactPayload>event.data;
+            let paymentInfo = <PaymentInfo>{};
+            paymentInfo.cardToken = event.data.cardToken;
+            let data = <ExecutionRequest>event.data;
+            data.paymentInfo = paymentInfo;
             const txHash = await apiClient.transact(data);
             sendEvent(frame, Events.RECEIVE_CONFIRM_TRANSACTION, txHash);
         } catch (error: any) {
@@ -233,7 +236,7 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
 // Parse payload before sending it to the iframe
 function createIframePayload(payload: StringPayload, _user: User | null): IframePayload {
     const nft: NFT = {
-        name: payload.name,
+        assetName: payload.assetName,
         price: payload.price,
         currency: payload.currency,
         collection: payload.collection ?? "",
@@ -263,7 +266,7 @@ export interface StringEvent {
 }
 
 export interface NFT {
-    name: string;
+    assetName: string;
     price: number;
     currency: string;
     collection?: string;

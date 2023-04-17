@@ -14,7 +14,7 @@
 	const STR_NFT_SRC = `${IPFS_GATEWAY}${IPFS_CID}/Demo_Character_1.png`
 
 	$: payload = {
-		name: "String Test NFT [AVAX]",
+		assetName: "String Test NFT [AVAX]",
 		collection: "String Demo",
 		imageSrc: STR_NFT_SRC,
 		imageAlt: "String NFT",
