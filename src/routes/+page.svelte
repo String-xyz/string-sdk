@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { StringPayButton } from "$lib";
+	import { StringPayButton, type StringPayload } from "$lib";
 	import { onMount } from "svelte";
 	import { writable } from "svelte/store";
 	import { ethers } from "ethers";
+    import type { TransactionResponse } from "$lib/services/apiClient.service";
 
 	const signerAddress = writable("");
 
@@ -41,6 +42,13 @@
 			publicKey: STR_API_KEY,
 		});
 
+		window.StringPay.onTxSuccess = (req: StringPayload, tx: TransactionResponse) => {
+			console.log(`[String Pay] Transaction Success for ${req.assetName}: ${tx.txUrl}`);
+		};
+
+		window.StringPay.onTxError = (req: StringPayload, txErr: any) => {
+			console.error(`[String Pay] Transaction Error for ${req.assetName}: ${txErr}`);
+		};
 
 		const accounts = await window.ethereum.request({
 			method: "eth_requestAccounts",

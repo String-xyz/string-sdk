@@ -1,4 +1,5 @@
 import { createServices, type Services } from "./services";
+import type { TransactionResponse } from "./services/apiClient.service";
 
 export interface StringPayload {
     assetName: string;
@@ -61,8 +62,10 @@ export class StringPay {
     #services: Services;
     private _IFRAME_URL: string;
 
-    onFrameLoad = () => {};
-    onFrameClose = () => {};
+    onFrameLoad: () => void;
+    onFrameClose: () => void;
+    onTxSuccess: (req: StringPayload, tx: TransactionResponse) => void;
+    onTxError: (req: StringPayload, txErr: any) => void;
 
     init(options: StringOptions) {
         const envDetails = ENV_TABLE[options.env];
