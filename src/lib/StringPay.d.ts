@@ -23,13 +23,20 @@ export interface StringOptions {
     bypassDeviceCheck?: boolean;
 }
 
+export interface TransactionResponse {
+    txID: string;
+    txUrl: string;
+}
+
 export declare class StringPay {
 	isLoaded: boolean;
 	payload?: StringPayload;
 	frame?: HTMLIFrameElement;
 	container?: Element;
-	onFrameLoad: () => void;
-	onFrameClose: () => void;
+    onFrameLoad: () => void;
+    onFrameClose: () => void;
+    onTxSuccess: (req: StringPayload, tx: TransactionResponse) => void;
+    onTxError: (req: StringPayload, txErr: any) => void;
 	init(options: StringOptions): void;
 	loadFrame(payload: StringPayload): void;
 }

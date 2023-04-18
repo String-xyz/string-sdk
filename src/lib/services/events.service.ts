@@ -45,16 +45,14 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
 
     const _handleEvent = async (e: any) => {
         if (e.origin !== iframeUrl) return;
-    
-        const stringPay: StringPay = (<any>window).StringPay;
-    
+
         try {
             const payload = JSON.parse(e.data);
             const channel = payload.channel;
             const event = <StringEvent>payload.event;
             if (channel === CHANNEL) {
                 const handler = eventHandlers[event.eventName];
-                if (handler) await handler(event, stringPay);
+                if (handler) await handler(event, window.StringPay);
                 else console.debug("SDK :: Unhandled event: ", event);
             }
         } catch (error) {
@@ -74,12 +72,13 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
 
     function cleanup() {
         unregisterEvents();
-    
-        if ((<any>window).StringPay) {
-            (<any>window).StringPay.frame?.remove();
-            (<any>window).StringPay.frame = undefined;
-            (<any>window).StringPay.isLoaded = false;
-            (<any>window).StringPay.onFrameClose();
+        const stringPay = window.StringPay;
+
+        if (stringPay) {
+            stringPay.frame?.remove();
+            stringPay.frame = undefined;
+            stringPay.isLoaded = false;
+            if (stringPay.onFrameClose) stringPay.onFrameClose();
         }
     }
 
@@ -116,7 +115,8 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
         const iframePayload = createIframePayload(stringPay.payload, user);
         sendEvent(stringPay.frame, Events.LOAD_PAYLOAD, iframePayload);
         stringPay.isLoaded = true;
-        stringPay.onFrameLoad();
+
+        if (stringPay.onFrameLoad) stringPay.onFrameLoad();
     }
 
     async function onIframeClose() {
@@ -198,8 +198,8 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
         quoteService.stopQuote();
     }
 
-    async function onConfirmTransaction(event: StringEvent, { frame }: StringPay) {
-        if (!frame) throw new Error("Iframe not ready");
+    async function onConfirmTransaction(event: StringEvent, stringPay: StringPay) {
+        if (!stringPay.frame) throw new Error("Iframe not ready");
 
         try {
             const paymentInfo = <PaymentInfo>{};
@@ -208,10 +208,17 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
             const data = <ExecutionRequest>event.data;
             data.paymentInfo = paymentInfo;
 
-            const txHash = await apiClient.transact(data);
-            sendEvent(frame, Events.RECEIVE_CONFIRM_TRANSACTION, txHash);
+            const txRes = await apiClient.transact(data);
+            sendEvent(stringPay.frame, Events.RECEIVE_CONFIRM_TRANSACTION, txRes);
+
+            if (stringPay.onTxSuccess && stringPay.payload) {
+                stringPay.onTxSuccess(stringPay.payload, txRes);
+            }
         } catch (error: any) {
-            sendEvent(frame, Events.RECEIVE_CONFIRM_TRANSACTION, {}, error);
+            sendEvent(stringPay.frame, Events.RECEIVE_CONFIRM_TRANSACTION, {}, error);
+            if (stringPay.onTxError && stringPay.payload) {
+                stringPay.onTxError(stringPay.payload, error);
+            }
         }
     }
 
