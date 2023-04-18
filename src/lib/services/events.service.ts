@@ -190,7 +190,7 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
 
         const quotePayload = <TransactionRequest>payload;
 
-        const callback = (quote: Quote) => sendEvent(frame, Events.QUOTE_CHANGED, { quote });
+        const callback = (quote: Quote | null, err: any) => sendEvent(frame, Events.QUOTE_CHANGED, { quote, err });
         quoteService.startQuote(quotePayload, callback);
     }
 
@@ -202,10 +202,12 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
         if (!frame) throw new Error("Iframe not ready");
 
         try {
-            let paymentInfo = <PaymentInfo>{};
+            const paymentInfo = <PaymentInfo>{};
             paymentInfo.cardToken = event.data.cardToken;
-            let data = <ExecutionRequest>event.data;
+
+            const data = <ExecutionRequest>event.data;
             data.paymentInfo = paymentInfo;
+
             const txHash = await apiClient.transact(data);
             sendEvent(frame, Events.RECEIVE_CONFIRM_TRANSACTION, txHash);
         } catch (error: any) {
