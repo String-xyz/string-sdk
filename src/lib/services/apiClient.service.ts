@@ -145,10 +145,10 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         }
     }
 
-    async function getQuote(payload: QuoteRequestPayload) {
+    async function getQuote(payload: TransactionRequest) {
         try {
             const request = () => httpClient.post(`/quotes`, payload);
-            const { data } = await authInterceptor<{ data: TransactPayload }>(request);
+            const { data } = await authInterceptor<{ data: Quote }>(request);
 
             return data;
         } catch (e: any) {
@@ -157,9 +157,9 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         }
     }
 
-    async function transact(transactPayload: TransactPayload) {
+    async function transact(payload: ExecutionRequest) {
         try {
-            const request = () => httpClient.post(`/transactions`, transactPayload);
+            const request = () => httpClient.post(`/transactions`, payload);
             const { data } = await authInterceptor<{
                 data: TransactionResponse;
             }>(request);
@@ -225,8 +225,8 @@ export interface ApiClient {
     refreshToken: (walletAddress: string) => Promise<AuthResponse>;
     logoutUser: () => Promise<void>;
     getUserStatus: (userId: string) => Promise<{ status: string }>;
-    getQuote: (payload: QuoteRequestPayload) => Promise<TransactPayload>;
-    transact: (quote: TransactPayload) => Promise<TransactionResponse>;
+    getQuote: (request: TransactionRequest) => Promise<Quote>;
+    transact: (request: ExecutionRequest) => Promise<TransactionResponse>;
     setWalletAddress: (walletAddress: string) => void;
 }
 
@@ -272,42 +272,47 @@ export interface VisitorData {
     requestId?: string;
 }
 
-export interface Quote {
+export interface TransactionRequest {
+    userAddress: string;
+    assetName: string;
+    chainID: number;
+    contractAddress: string;
+    contractFunction: string;
+    contractReturn: string;
+    contractParameters: string[];
+    txValue: string;
+    gasLimit: string;
+}
+
+export interface Estimate {
     timestamp: number;
     baseUSD: string;
     gasUSD: string;
     tokenUSD: string;
     serviceUSD: string;
     totalUSD: string;
+}
+
+export interface Quote {
+    transactionRequest: TransactionRequest;
+    estimate: Estimate;
     signature: string;
 }
 
-export interface TransactPayload extends Quote {
-    userAddress: string;
-    chainID: number;
-    contractAddress: string;
-    contractFunction: string;
-    contractReturn: string;
-    contractParameters: string[];
-    txValue: string;
-    gasLimit: string;
-    cardToken: string;
+export interface PaymentInfo {
+    cardToken?: string;
+    cardId?: string;
+    cvv?: string;
+}
+
+export interface ExecutionRequest {
+    quote: Quote;
+    paymentInfo: PaymentInfo;
 }
 
 export interface TransactionResponse {
     txID: string;
     txUrl: string;
-}
-
-export interface QuoteRequestPayload {
-    chainID: number;
-    userAddress: string;
-    contractAddress: string;
-    contractFunction: string;
-    contractReturn: string;
-    contractParameters: string[];
-    txValue: string;
-    gasLimit: string;
 }
 
 export interface ApiClientOptions {

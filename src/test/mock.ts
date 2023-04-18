@@ -3,7 +3,7 @@ import type { StringPayload } from '../lib/StringPay';
 const userAddr = "0x000000"
 
 export const testPayload: StringPayload = {
-	name: "String Demo NFT",
+	assetName: "String Demo NFT",
 	collection: "String Demo",
 	imageSrc: "https://gateway.pinata.cloud/ipfs/bafybeibtmy26mac47n5pp6srds76h74riqs76erw24p5yvdhmwu7pxlcx4/STR_Logo_1.png",
 	imageAlt: "NFT",

@@ -1,7 +1,7 @@
 import { createServices, type Services } from "./services";
 
 export interface StringPayload {
-    name: string;
+    assetName: string;
     collection?: string;
     currency: string;
     price: number;
