@@ -3,14 +3,14 @@ import type { ApiClient, TransactionRequest, Quote } from './apiClient.service';
 export function createQuoteService(apiClient: ApiClient): QuoteService {
 	let interval: NodeJS.Timer | undefined;
 
-	async function startQuote(payload: TransactionRequest, callback: (payload: Quote) => void) {
-		refreshQuote(payload, callback);
+	async function startQuote(payload: TransactionRequest, callback: (quote: Quote | null, err: any) => void) {
+		_refreshQuote(payload, callback);
 
 		if (interval) {
 			clearInterval(interval);
 		}
 
-		interval = setInterval(() => refreshQuote(payload, callback), 10000);
+		interval = setInterval(() => _refreshQuote(payload, callback), 10000);
 	}
 
 	function stopQuote() {
@@ -18,24 +18,23 @@ export function createQuoteService(apiClient: ApiClient): QuoteService {
 		interval = undefined;
 	}
 
-	async function refreshQuote(payload: TransactionRequest, callback: (payload: Quote) => void) {
+	async function _refreshQuote(payload: TransactionRequest, callback: (quote: Quote | null, err: any) => void) {
 		try {
 			const quote = await apiClient.getQuote(payload);
-			callback(quote);
-		} catch (e) {
-			console.debug('-- refresh quote error --', e);
+			callback(quote, null);
+		} catch (err: any) {
+			console.debug('-- refresh quote error --', err);
+			callback(null, err);
 		}
 	}
 
 	return {
 		startQuote,
 		stopQuote,
-		refreshQuote,
 	};
 }
 
 export interface QuoteService {
-	startQuote: (payload: TransactionRequest, callback: (payload: Quote) => void) => Promise<void>;
+	startQuote: (payload: TransactionRequest, callback: (quote: Quote | null, err: any) => void) => Promise<void>;
 	stopQuote: () => void;
-	refreshQuote: (payload: TransactionRequest, callback: (payload: Quote) => void) => Promise<void>;
 }
