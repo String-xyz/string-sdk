@@ -73,7 +73,6 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
             const request = () =>
                 httpClient.get(`/users/${userId}/verify-email`, {
                     params: { email },
-                    // timeout: 15 * 60 * 1000 // 15 minutes
                 });
 
             await authInterceptor(request);

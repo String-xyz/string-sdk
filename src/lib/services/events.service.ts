@@ -176,10 +176,15 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
 
         try {
             const data = <{ userId: string; email: string }>event.data;
+
             await apiClient.requestEmailVerification(data.userId, data.email);
-            sendEvent(frame, Events.RECEIVE_EMAIL_VERIFICATION, {
-                status: "email_verified",
-            });
+            const check = setInterval(async () => {
+                const { status } = await apiClient.getUserStatus(data.userId);
+                if (status == "email_verified") {
+                    sendEvent(frame, Events.RECEIVE_EMAIL_VERIFICATION, { status });
+                    clearInterval(check);
+                }
+            }, 5000);
         } catch (error: any) {
             sendEvent(frame, Events.RECEIVE_EMAIL_VERIFICATION, {}, error);
         }
