@@ -4,8 +4,8 @@ import type { TransactionResponse } from "./services/apiClient.service";
 export interface StringPayload {
     assetName: string;
     collection?: string;
+    price: string;
     currency: string;
-    price: number;
     imageSrc: string;
     imageAlt?: string;
     chainID: number;
@@ -127,9 +127,7 @@ export class StringPay {
 
 function main() {
     // Expose the StringPay instance to the window
-
-    const stringPay = new StringPay();
-    (<any>window).StringPay = stringPay;
+    window.StringPay = new StringPay();
 }
 
 main();

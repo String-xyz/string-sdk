@@ -281,7 +281,7 @@ export interface StringEvent {
 
 export interface NFT {
     assetName: string;
-    price: number;
+    price: string;
     currency: string;
     collection?: string;
     imageSrc: string;

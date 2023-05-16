@@ -1,6 +1,6 @@
 {
 	"name": "@stringpay/sdk",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"license": "UNLICENSED",
 	"main": "./src/lib/index.ts",
 	"types": "dist/index.d.ts",
