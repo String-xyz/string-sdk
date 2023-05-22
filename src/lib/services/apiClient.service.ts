@@ -144,6 +144,28 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         }
     }
 
+    async function getUserEmailPreview(nonce: string, signature: string) {
+        // The request body takes a fingerprint but it does not matter what it is
+        const body = {
+            nonce,
+            signature,
+            fingerprint: {
+                visitorId: "",
+                requestId: "",
+            }
+        }
+        try {
+            const { data } = await httpClient.post<{email: string}>(`/users/preview-email`, body, {
+                headers: authHeaders,
+            });
+
+            return data;
+        } catch (e: any) {
+            const error = _getErrorFromAxiosError(e);
+            throw error;
+        }
+    }
+
     async function getQuote(payload: TransactionRequest) {
         try {
             const request = () => httpClient.post(`/quotes`, payload);
@@ -209,6 +231,7 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         refreshToken,
         logoutUser,
         getUserStatus,
+        getUserEmailPreview,
         getQuote,
         transact,
         setWalletAddress,
@@ -224,6 +247,7 @@ export interface ApiClient {
     refreshToken: (walletAddress: string) => Promise<AuthResponse>;
     logoutUser: () => Promise<void>;
     getUserStatus: (userId: string) => Promise<{ status: string }>;
+    getUserEmailPreview: (nonce: string, signature: string) => Promise<{ email: string }>;
     getQuote: (request: TransactionRequest) => Promise<Quote>;
     transact: (request: ExecutionRequest) => Promise<TransactionResponse>;
     setWalletAddress: (walletAddress: string) => void;

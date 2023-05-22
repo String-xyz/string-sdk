@@ -78,6 +78,7 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
 	return {
 		loginOrCreateUser,
 		fetchLoggedInUser,
+		requestSignature,
 		retryLogin,
 		logout
 	};
@@ -92,6 +93,7 @@ export interface AuthServiceParams {
 export interface AuthService {
 	loginOrCreateUser: (walletAddress: string) => Promise<{ user: User }>;
 	fetchLoggedInUser: (walletAddress: string) => Promise<User | null>;
+	requestSignature: (userAddress: string, encodedMessage: string) => Promise<string>;
 	retryLogin: () => Promise<{ user: User }>;
 	logout: () => Promise<any>;
 }
