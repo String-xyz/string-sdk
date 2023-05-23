@@ -21,6 +21,8 @@ export enum Events {
     RECEIVE_EMAIL_VERIFICATION  = "receive_email_verification",
     REQUEST_EMAIL_PREVIEW       = "request_email_preview",
     RECEIVE_EMAIL_PREVIEW       = "receive_email_preview",
+    REQUEST_DEVICE_VERIFICATION = "request_device_verification",
+    RECEIVE_DEVICE_VERIFICATION = "receive_device_verification",
     REQUEST_CONFIRM_TRANSACTION = "request_confirm_transaction",
     RECEIVE_CONFIRM_TRANSACTION = "receive_confirm_transaction",
     REQUEST_QUOTE_START         = "request_quote_start",
@@ -31,6 +33,9 @@ export enum Events {
 const eventHandlers: Record<string, (event: StringEvent, stringPay: StringPay) => void> = {};
 
 export function createEventsService(iframeUrl: string, authService: AuthService, quoteService: QuoteService, apiClient: ApiClient, locationService: LocationService) {
+    let emailCheckInterval: NodeJS.Timer | undefined;
+    let deviceCheckInterval: NodeJS.Timer | undefined;
+
     const sendEvent = <T = any>(frame: HTMLIFrameElement, eventName: string, data?: T, error?: any) => {
         if (!frame) {
             err("a frame was not provided to sendEvent");
@@ -74,6 +79,10 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
 
     function cleanup() {
         unregisterEvents();
+
+        clearInterval(emailCheckInterval);
+        clearInterval(deviceCheckInterval);
+
         const stringPay = window.StringPay;
 
         if (stringPay) {
@@ -93,6 +102,7 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
     eventHandlers[Events.REQUEST_UPDATE_USER]         = onUpdateUser;
     eventHandlers[Events.REQUEST_EMAIL_VERIFICATION]  = onEmailVerification;
     eventHandlers[Events.REQUEST_EMAIL_PREVIEW]       = onEmailPreview;
+    eventHandlers[Events.REQUEST_DEVICE_VERIFICATION] = onDeviceVerification;
     eventHandlers[Events.REQUEST_QUOTE_START]         = onQuoteStart;
     eventHandlers[Events.REQUEST_QUOTE_STOP]          = onQuoteStop;
     eventHandlers[Events.REQUEST_CONFIRM_TRANSACTION] = onConfirmTransaction;
@@ -181,15 +191,45 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
             const data = <{ userId: string; email: string }>event.data;
 
             await apiClient.requestEmailVerification(data.userId, data.email);
-            const check = setInterval(async () => {
+            
+            clearInterval(emailCheckInterval);
+            emailCheckInterval = setInterval(async () => {
                 const { status } = await apiClient.getUserStatus(data.userId);
                 if (status == "email_verified") {
                     sendEvent(frame, Events.RECEIVE_EMAIL_VERIFICATION, { status });
-                    clearInterval(check);
+                    clearInterval(emailCheckInterval);
                 }
             }, 5000);
         } catch (error: any) {
             sendEvent(frame, Events.RECEIVE_EMAIL_VERIFICATION, {}, error);
+        }
+    }
+
+    async function onDeviceVerification(event: StringEvent, { frame }: StringPay) {
+        if (!frame) throw new Error("Iframe not ready");
+
+        try {
+            const data = <{ walletAddress: string }>event.data;
+
+            const { nonce } = await apiClient.requestLogin(data.walletAddress);
+            const signature = await authService.requestSignature(data.walletAddress, nonce);
+
+            const visitorData = await locationService.getVisitorData();
+
+            if (!visitorData) throw new Error("Device verification not available");
+
+            await apiClient.requestDeviceVerification(nonce, signature, visitorData);
+
+            clearInterval(deviceCheckInterval);
+            deviceCheckInterval = setInterval(async () => {
+                const { status } = await apiClient.getDeviceStatus(nonce, signature, visitorData);
+                if (status == "verified") {
+                    sendEvent(frame, Events.RECEIVE_DEVICE_VERIFICATION, { status });
+                    clearInterval(deviceCheckInterval);
+                }
+            }, 5000);
+        } catch (error: any) {
+            sendEvent(frame, Events.RECEIVE_DEVICE_VERIFICATION, {}, error);
         }
     }
 
