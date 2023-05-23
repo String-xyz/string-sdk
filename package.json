@@ -17,7 +17,7 @@
 		"release:demo": "yarn bundle && yarn copy",
 		"test:unit": "vitest run --coverage",
 		"coverage": "c8 report --check-coverage",
-		"test": "jest",
+		"test": "jest --coverage",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "eslint ."
