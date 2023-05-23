@@ -42,6 +42,9 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
 		if (!previousAttempt.signature) throw { code: "UNAUTHORIZED" };
 
 		const visitorData = await locationService.getVisitorData();
+
+		if (!visitorData) throw new Error("cannot get device data");
+
 		return { nonce: previousAttempt.nonce, signature: previousAttempt.signature, visitor: visitorData}  
 	};
 

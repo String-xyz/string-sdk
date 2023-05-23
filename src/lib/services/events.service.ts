@@ -13,8 +13,6 @@ export enum Events {
     IFRAME_CLOSE                = "close",
     REQUEST_AUTHORIZE_USER      = "request_authorize_user",
     RECEIVE_AUTHORIZE_USER      = "receive_authorize_user",
-    REQUEST_RETRY_LOGIN         = "request_retry_login",
-    RECEIVE_RETRY_LOGIN         = "receive_retry_login",
     REQUEST_UPDATE_USER         = 'request_update_user',
     RECEIVE_UPDATE_USER         = 'receive_update_user',
     REQUEST_EMAIL_VERIFICATION  = "request_email_verification",
@@ -98,7 +96,6 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
     eventHandlers[Events.IFRAME_CLOSE]                = onIframeClose;
     eventHandlers[Events.IFRAME_RESIZE]               = onIframeResize;
     eventHandlers[Events.REQUEST_AUTHORIZE_USER]      = onAuthorizeUser;
-    eventHandlers[Events.REQUEST_RETRY_LOGIN]         = onRetryLogin;
     eventHandlers[Events.REQUEST_UPDATE_USER]         = onUpdateUser;
     eventHandlers[Events.REQUEST_EMAIL_VERIFICATION]  = onEmailVerification;
     eventHandlers[Events.REQUEST_EMAIL_PREVIEW]       = onEmailPreview;
@@ -157,17 +154,6 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
         } catch (error: any) {
             console.debug("SDK :: onAuthorizeUser error: ", error);
             sendEvent(stringPay.frame, Events.RECEIVE_AUTHORIZE_USER, {}, error);
-        }
-    }
-
-    async function onRetryLogin(event: StringEvent, { frame }: StringPay) {
-        if (!frame) throw new Error("Iframe not ready");
-
-        try {
-            const { user } = await authService.retryLogin();
-            sendEvent(frame, Events.RECEIVE_RETRY_LOGIN, { user });
-        } catch (error) {
-            sendEvent(frame, Events.RECEIVE_RETRY_LOGIN, {}, error);
         }
     }
 
