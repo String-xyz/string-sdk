@@ -157,6 +157,10 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
     }
 
     async function transact(payload: ExecutionRequest) {
+        if (payload.paymentInfo.saveCard === undefined) {
+            payload.paymentInfo.saveCard = true; // default to true
+        }
+
         try {
             const request = () => httpClient.post(`/transactions`, payload);
             const { data } = await authInterceptor<{
@@ -302,6 +306,7 @@ export interface PaymentInfo {
     cardToken?: string;
     cardId?: string;
     cvv?: string;
+    saveCard?: boolean;
 }
 
 export interface ExecutionRequest {
