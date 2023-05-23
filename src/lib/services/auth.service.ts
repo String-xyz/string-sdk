@@ -36,13 +36,16 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
 		}
 	}
 
-	const retryLogin = async () => {
+	const getPreviousSignature = async () => {
 		// TODO: Use refresh token instead
 		// TODO: Modify refresh token endpoint to verify visitor data
 		if (!previousAttempt.signature) throw { code: "UNAUTHORIZED" };
 
 		const visitorData = await locationService.getVisitorData();
-		return login(previousAttempt.nonce, previousAttempt.signature, visitorData);
+
+		if (!visitorData) throw new Error("cannot get device data");
+
+		return { nonce: previousAttempt.nonce, signature: previousAttempt.signature, visitor: visitorData}  
 	};
 
 
@@ -78,7 +81,8 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
 	return {
 		loginOrCreateUser,
 		fetchLoggedInUser,
-		retryLogin,
+		requestSignature,
+		getPreviousSignature,
 		logout
 	};
 }
@@ -92,6 +96,7 @@ export interface AuthServiceParams {
 export interface AuthService {
 	loginOrCreateUser: (walletAddress: string) => Promise<{ user: User }>;
 	fetchLoggedInUser: (walletAddress: string) => Promise<User | null>;
-	retryLogin: () => Promise<{ user: User }>;
+	requestSignature: (userAddress: string, encodedMessage: string) => Promise<string>;
+	getPreviousSignature: () => Promise<{nonce: string, signature: string, visitor: VisitorData}>;
 	logout: () => Promise<any>;
 }

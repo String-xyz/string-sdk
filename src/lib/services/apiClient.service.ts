@@ -82,6 +82,23 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         }
     }
 
+    async function requestDeviceVerification(nonce: string, signature: string, visitor: VisitorData) {
+        const body = {
+            nonce,
+            signature,
+            fingerprint: visitor,
+        };
+
+        try {
+            await httpClient.post<void>(`/users/verify-device`, body, {
+                headers: authHeaders,
+            });
+        } catch (e: any) {
+            const error = _getErrorFromAxiosError(e);
+            throw error;
+        }
+    }
+
     async function loginUser(nonce: string, signature: string, visitor?: VisitorData, bypassDeviceCheck = false) {
         const body = {
             nonce,
@@ -136,6 +153,47 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
             const { data } = await authInterceptor<{
                 data: { status: string };
             }>(request);
+
+            return data;
+        } catch (e: any) {
+            const error = _getErrorFromAxiosError(e);
+            throw error;
+        }
+    }
+
+    async function getDeviceStatus(nonce: string, signature: string, visitor: VisitorData) {
+        const body = {
+            nonce,
+            signature,
+            fingerprint: visitor,
+        };
+
+        try {
+            const { data } = await httpClient.post<{ status: string }>(`/users/device-status`, body, {
+                headers: authHeaders,
+            });
+
+            return data;
+        } catch (e: any) {
+            const error = _getErrorFromAxiosError(e);
+            throw error;
+        }
+    }
+
+    async function getUserEmailPreview(nonce: string, signature: string) {
+        // The request body takes a fingerprint but it does not matter what it is
+        const body = {
+            nonce,
+            signature,
+            fingerprint: {
+                visitorId: "",
+                requestId: "",
+            }
+        }
+        try {
+            const { data } = await httpClient.post<{email: string}>(`/users/preview-email`, body, {
+                headers: authHeaders,
+            });
 
             return data;
         } catch (e: any) {
@@ -205,10 +263,13 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         createUser,
         updateUser,
         requestEmailVerification,
+        requestDeviceVerification,
         loginUser,
         refreshToken,
         logoutUser,
         getUserStatus,
+        getDeviceStatus,
+        getUserEmailPreview,
         getQuote,
         transact,
         setWalletAddress,
@@ -220,10 +281,13 @@ export interface ApiClient {
     createUser: (nonce: string, signature: string, visitor?: VisitorData) => Promise<AuthResponse>;
     updateUser: (userId: string, userUpdate: UserUpdate) => Promise<User>;
     requestEmailVerification: (userId: string, email: string) => Promise<void>;
+    requestDeviceVerification: (nonce: string, signature: string, visitor: VisitorData) => Promise<void>;
     loginUser: (nonce: string, signature: string, visitor?: VisitorData, bypassDeviceCheck?: boolean) => Promise<AuthResponse>;
     refreshToken: (walletAddress: string) => Promise<AuthResponse>;
     logoutUser: () => Promise<void>;
     getUserStatus: (userId: string) => Promise<{ status: string }>;
+    getDeviceStatus: (nonce: string, signature: string, visitor: VisitorData) => Promise<{ status: string }>;
+    getUserEmailPreview: (nonce: string, signature: string) => Promise<{ email: string }>;
     getQuote: (request: TransactionRequest) => Promise<Quote>;
     transact: (request: ExecutionRequest) => Promise<TransactionResponse>;
     setWalletAddress: (walletAddress: string) => void;
