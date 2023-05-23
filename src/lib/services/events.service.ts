@@ -211,18 +211,23 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
         try {
             const data = <{ walletAddress: string }>event.data;
 
-            const { nonce } = await apiClient.requestLogin(data.walletAddress);
-            const signature = await authService.requestSignature(data.walletAddress, nonce);
+            let nonce: string;
+            let signature: string;
+    
+            const previous = await authService.getPreviousSignature();
+            nonce = previous.nonce;
+            signature = previous.signature;
 
-            const visitorData = await locationService.getVisitorData();
-
-            if (!visitorData) throw new Error("Device verification not available");
-
-            await apiClient.requestDeviceVerification(nonce, signature, visitorData);
+            if (!previous.signature) {
+                nonce = (await apiClient.requestLogin(data.walletAddress)).nonce;
+                signature = await authService.requestSignature(data.walletAddress, nonce);
+            }
+    
+            await apiClient.requestDeviceVerification(nonce, signature, previous.visitor);
 
             clearInterval(deviceCheckInterval);
             deviceCheckInterval = setInterval(async () => {
-                const { status } = await apiClient.getDeviceStatus(nonce, signature, visitorData);
+                const { status } = await apiClient.getDeviceStatus(nonce, signature, previous.visitor);
                 if (status == "verified") {
                     sendEvent(frame, Events.RECEIVE_DEVICE_VERIFICATION, { status });
                     clearInterval(deviceCheckInterval);
@@ -239,8 +244,17 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
         try {
             const data = <{ walletAddress: string }>event.data;
 
-            const { nonce } = await apiClient.requestLogin(data.walletAddress);
-            const signature = await authService.requestSignature(data.walletAddress, nonce);
+            let nonce: string;
+            let signature: string;
+
+            const previous = await authService.getPreviousSignature();
+            nonce = previous.nonce;
+            signature = previous.signature;
+
+            if (!previous.signature) {
+                nonce = (await apiClient.requestLogin(data.walletAddress)).nonce;
+                signature = await authService.requestSignature(data.walletAddress, nonce);
+            }
 
             const { email } = await apiClient.getUserEmailPreview(nonce, signature);
 

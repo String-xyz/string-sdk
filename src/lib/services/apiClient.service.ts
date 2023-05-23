@@ -90,7 +90,7 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         };
 
         try {
-            await httpClient.post<AuthResponse>(`/users/verify-device`, body, {
+            await httpClient.post<void>(`/users/verify-device`, body, {
                 headers: authHeaders,
             });
         } catch (e: any) {
