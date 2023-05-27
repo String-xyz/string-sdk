@@ -1,24 +1,14 @@
-import { ApiClient, AuthResponse, ExecutionRequest, Quote, TransactionRequest, TransactionResponse, User, UserUpdate, VisitorData } from "@src/types";
-import axios from "redaxios"; // TODO: replace with axios **Note: there are weird issues when using rollup.js + axios **
+import type { HttpClient } from "$lib/httpClient";
 
-export function createApiClient(baseUrl: string, apiKey: string): ApiClient {
+export function createApiClient(httpClient: HttpClient, apiKey: string): ApiClient {
     let _userWalletAddress = "";
-
-    const commonHeaders: any = {
-        "Content-Type": "application/json",
-    };
 
     const authHeaders: any = {
         "X-Api-Key": apiKey,
     };
 
-    const httpClient = axios.create({
-        baseURL: baseUrl,
-        headers: commonHeaders,
-        withCredentials: true, // send cookies,
-    });
-
     const setWalletAddress = (addr: string) => (_userWalletAddress = addr);
+    const getWalletAddress = () => _userWalletAddress;
 
     async function requestLogin(walletAddress: string) {
         setWalletAddress(walletAddress);
@@ -177,15 +167,12 @@ export function createApiClient(baseUrl: string, apiKey: string): ApiClient {
         }
     }
 
-    async function getUserEmailPreview(nonce: string, signature: string) {
+    async function getUserEmailPreview(nonce: string, signature: string, fingerprint?: VisitorData) {
         // The request body takes a fingerprint but it does not matter what it is
         const body = {
             nonce,
             signature,
-            fingerprint: {
-                visitorId: "",
-                requestId: "",
-            },
+            fingerprint: fingerprint ? fingerprint : { visitorId: "", requestId: "" },
         };
         try {
             const { data } = await httpClient.post<{ email: string }>(`/users/preview-email`, body, {
@@ -266,6 +253,7 @@ export function createApiClient(baseUrl: string, apiKey: string): ApiClient {
     }
 
     return {
+        httpClient,
         requestLogin,
         createUser,
         updateUser,
@@ -281,5 +269,6 @@ export function createApiClient(baseUrl: string, apiKey: string): ApiClient {
         getQuote,
         transact,
         setWalletAddress,
+        getWalletAddress,
     };
 }
