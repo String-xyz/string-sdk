@@ -1,18 +1,16 @@
-import type { ApiClient, User } from './apiClient.service';
+import type { ApiClient, User,  UserUpdate } from "./apiClient.service";
 import type { LocationService, VisitorData } from './location.service';
 
 export function createAuthService({ apiClient, locationService, bypassDeviceCheck }: AuthServiceParams): AuthService {
-	const previousAttempt = { signature: "", nonce: "" };
+	let emailCheckInterval: NodeJS.Timer | undefined;
+    let deviceCheckInterval: NodeJS.Timer | undefined;
+    const previousAttempt = { signature: "", nonce: "" };
 
-	const login = async (nonce: string, signature: string, visitorData?: VisitorData) => {
-		const data = await apiClient.loginUser(nonce, signature, visitorData, bypassDeviceCheck);
-		return data;
-	};
-
-	const loginOrCreateUser = async (walletAddress: string) => {
+    const authorizeUser = async (walletAddress: string) => {
 		const { nonce } = await apiClient.requestLogin(walletAddress);
 		const signature = await requestSignature(walletAddress, nonce);
 		const visitorData = await locationService.getVisitorData();
+        
 
 		// is there a better way to do this? I'm concerned about keeping this state in memory and not in local storage
 		previousAttempt.nonce = nonce;
@@ -23,20 +21,12 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
 			return data;
 		} catch (err: any) {
 			// if user already exists, try to login
-			if (err.code === "CONFLICT") return login(nonce, signature, visitorData);
+			if (err.code === "CONFLICT") return apiClient.loginUser(nonce, signature, visitorData, bypassDeviceCheck);
 			throw err;
 		}
 	};
 
-	const logout = async () => {
-		try {
-			await apiClient.logoutUser();
-		} catch {
-			return;
-		}
-	}
-
-	const getPreviousSignature = async () => {
+    const getPreviousSignature = async () => {
 		// TODO: Use refresh token instead
 		// TODO: Modify refresh token endpoint to verify visitor data
 		if (!previousAttempt.signature) throw { code: "UNAUTHORIZED" };
@@ -73,30 +63,130 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
 		try {
 			const { user } = await apiClient.refreshToken(walletAddress);
 			return user;
-		} catch (err: any) {
-			return null;
+		} catch (error: any) {
+			return error;
 		}
 	}
 
+    const emailVerification = async (userId: string, email: string) => {
+        try {
+            await apiClient.requestEmailVerification(userId, email);
+            
+            clearInterval(emailCheckInterval);
+            emailCheckInterval = setInterval(async () => {
+                const { status } = await apiClient.getUserStatus(userId);
+                if (status == "email_verified") {
+                    clearInterval(emailCheckInterval);
+                    return status
+                }
+            }, 5000);
+        } catch  (error: any){
+            return error
+        }
+    }
+
+    const emailPreview = async (walletAddress: string) => {
+        try {
+            let nonce: string;
+            let signature: string;
+
+            const previous = await getPreviousSignature();
+            nonce = previous.nonce;
+            signature = previous.signature;
+
+            if (!previous.signature) {
+                nonce = (await apiClient.requestLogin(walletAddress)).nonce;
+                signature = await requestSignature(walletAddress, nonce);
+            }
+
+            const { email } = await apiClient.getUserEmailPreview(nonce, signature);
+            return email;
+
+        }
+        catch (error: any) {
+            return error
+        }
+    }
+
+    const deviceVerification = async (walletAddress: string) => {
+        try {
+            let nonce: string;
+            let signature: string;
+    
+            const previous = await getPreviousSignature();
+            nonce = previous.nonce;
+            signature = previous.signature;
+
+            if (!previous.signature) {
+                nonce = (await apiClient.requestLogin(walletAddress)).nonce;
+                signature = await requestSignature(walletAddress, nonce);
+            }
+    
+            await apiClient.requestDeviceVerification(nonce, signature, previous.visitor);
+
+            clearInterval(deviceCheckInterval);
+            deviceCheckInterval = setInterval(async () => {
+                const { status } = await apiClient.getDeviceStatus(nonce, signature, previous.visitor);
+                if (status == "verified") {
+                    clearInterval(deviceCheckInterval);
+                    return status
+                }
+            }, 5000);
+        } catch (error: any) {
+            return error;
+        }
+    }
+
+    const updateUser = async (userId: string, userUpdate: UserUpdate) => {
+        try {
+            await apiClient.updateUser(userId, userUpdate);
+        } catch (err: any) {
+            return err;
+        }
+    }
+
+    const logout = async () => {
+		try {
+			await apiClient.logoutUser();
+		} catch (err: any) {
+			return err;
+		}
+	}
+
+    const cleanup = () => {
+        clearInterval(emailCheckInterval);
+        clearInterval(deviceCheckInterval);
+    }
+
 	return {
-		loginOrCreateUser,
-		fetchLoggedInUser,
+        authorizeUser,
+        emailVerification,
+        emailPreview,
+        deviceVerification,
+        fetchLoggedInUser,
 		requestSignature,
 		getPreviousSignature,
-		logout
-	};
+        updateUser,
+        logout,
+        cleanup
+    };
+}
+
+export interface AuthService {
+	authorizeUser: (walletAddress: string) => Promise<any>;
+    fetchLoggedInUser: (walletAddress: string) => Promise<User | null>;
+	requestSignature: (userAddress: string, encodedMessage: string) => Promise<string>;
+	getPreviousSignature: () => Promise<{nonce: string, signature: string, visitor: VisitorData}>;
+    emailVerification: (userId: string, email: string) => Promise<any>;
+    emailPreview: (walletAddress: string) => Promise<any>;
+    deviceVerification: (walletAddress: string) => Promise<any>;
+    updateUser: (userId: string, userUpdate: UserUpdate) => Promise<User>;
+    logout: () => Promise<void>;
+    cleanup: () => void;
 }
 
 export interface AuthServiceParams {
 	apiClient: ApiClient;
 	locationService: LocationService;
 	bypassDeviceCheck: boolean;
-}
-
-export interface AuthService {
-	loginOrCreateUser: (walletAddress: string) => Promise<{ user: User }>;
-	fetchLoggedInUser: (walletAddress: string) => Promise<User | null>;
-	requestSignature: (userAddress: string, encodedMessage: string) => Promise<string>;
-	getPreviousSignature: () => Promise<{nonce: string, signature: string, visitor: VisitorData}>;
-	logout: () => Promise<any>;
 }

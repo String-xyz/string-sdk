@@ -31,9 +31,6 @@ export enum Events {
 const eventHandlers: Record<string, (event: StringEvent, stringPay: StringPay) => void> = {};
 
 export function createEventsService(iframeUrl: string, authService: AuthService, quoteService: QuoteService, apiClient: ApiClient, locationService: LocationService) {
-    let emailCheckInterval: NodeJS.Timer | undefined;
-    let deviceCheckInterval: NodeJS.Timer | undefined;
-
     const sendEvent = <T = any>(frame: HTMLIFrameElement, eventName: string, data?: T, error?: any) => {
         if (!frame) {
             err("a frame was not provided to sendEvent");
@@ -77,9 +74,8 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
 
     function cleanup() {
         unregisterEvents();
-
-        clearInterval(emailCheckInterval);
-        clearInterval(deviceCheckInterval);
+        authService.cleanup();
+        
 
         const stringPay = window.StringPay;
 
@@ -149,8 +145,9 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
         if (!stringPay.frame || !stringPay.payload) throw new Error("Iframe not ready");
 
         try {
-            const { user } = await authService.loginOrCreateUser(stringPay.payload.userAddress);
+            const { user } = await authService.authorizeUser(stringPay.payload.userAddress);
             sendEvent(stringPay.frame, Events.RECEIVE_AUTHORIZE_USER, { user });
+            return;
         } catch (error: any) {
             console.debug("SDK :: onAuthorizeUser error: ", error);
             sendEvent(stringPay.frame, Events.RECEIVE_AUTHORIZE_USER, {}, error);
@@ -162,9 +159,9 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
 
         try {
             const data = <{ userId: string, update: UserUpdate }>event.data;
-            const user = await apiClient.updateUser(data.userId, data.update);
-
+            const user = await authService.updateUser(data.userId, data.update);
             sendEvent(frame, Events.RECEIVE_UPDATE_USER, { user });
+            return;
         } catch (error: any) {
             sendEvent(frame, Events.RECEIVE_UPDATE_USER, {}, error);
         }
@@ -175,17 +172,8 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
 
         try {
             const data = <{ userId: string; email: string }>event.data;
-
-            await apiClient.requestEmailVerification(data.userId, data.email);
-            
-            clearInterval(emailCheckInterval);
-            emailCheckInterval = setInterval(async () => {
-                const { status } = await apiClient.getUserStatus(data.userId);
-                if (status == "email_verified") {
-                    sendEvent(frame, Events.RECEIVE_EMAIL_VERIFICATION, { status });
-                    clearInterval(emailCheckInterval);
-                }
-            }, 5000);
+            const status = await authService.emailVerification(data.userId, data.email);
+            sendEvent(frame, Events.RECEIVE_EMAIL_VERIFICATION, { status });
         } catch (error: any) {
             sendEvent(frame, Events.RECEIVE_EMAIL_VERIFICATION, {}, error);
         }
@@ -193,32 +181,11 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
 
     async function onDeviceVerification(event: StringEvent, { frame }: StringPay) {
         if (!frame) throw new Error("Iframe not ready");
-
         try {
             const data = <{ walletAddress: string }>event.data;
-
-            let nonce: string;
-            let signature: string;
-    
-            const previous = await authService.getPreviousSignature();
-            nonce = previous.nonce;
-            signature = previous.signature;
-
-            if (!previous.signature) {
-                nonce = (await apiClient.requestLogin(data.walletAddress)).nonce;
-                signature = await authService.requestSignature(data.walletAddress, nonce);
-            }
-    
-            await apiClient.requestDeviceVerification(nonce, signature, previous.visitor);
-
-            clearInterval(deviceCheckInterval);
-            deviceCheckInterval = setInterval(async () => {
-                const { status } = await apiClient.getDeviceStatus(nonce, signature, previous.visitor);
-                if (status == "verified") {
-                    sendEvent(frame, Events.RECEIVE_DEVICE_VERIFICATION, { status });
-                    clearInterval(deviceCheckInterval);
-                }
-            }, 5000);
+            const status = await authService.deviceVerification(data.walletAddress);
+            sendEvent(frame, Events.RECEIVE_DEVICE_VERIFICATION, { status });
+            return;
         } catch (error: any) {
             sendEvent(frame, Events.RECEIVE_DEVICE_VERIFICATION, {}, error);
         }
@@ -229,22 +196,9 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
 
         try {
             const data = <{ walletAddress: string }>event.data;
-
-            let nonce: string;
-            let signature: string;
-
-            const previous = await authService.getPreviousSignature();
-            nonce = previous.nonce;
-            signature = previous.signature;
-
-            if (!previous.signature) {
-                nonce = (await apiClient.requestLogin(data.walletAddress)).nonce;
-                signature = await authService.requestSignature(data.walletAddress, nonce);
-            }
-
-            const { email } = await apiClient.getUserEmailPreview(nonce, signature);
-
+            const email = await authService.emailPreview(data.walletAddress);  
             sendEvent(frame, Events.RECEIVE_EMAIL_PREVIEW, { email });
+            return;
         } catch (error: any) {
             sendEvent(frame, Events.RECEIVE_EMAIL_PREVIEW, {}, error);
         }
