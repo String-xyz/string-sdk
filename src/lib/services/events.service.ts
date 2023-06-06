@@ -22,7 +22,7 @@ export enum Events {
     REQUEST_DEVICE_VERIFICATION = "request_device_verification",
     RECEIVE_DEVICE_VERIFICATION = "receive_device_verification",
     REQUEST_SAVED_CARDS         = "request_saved_cards",
-	RECEIVE_SAVED_CARDS         = "receive_saved_cards",
+    RECEIVE_SAVED_CARDS         = "receive_saved_cards",
     REQUEST_CONFIRM_TRANSACTION = "request_confirm_transaction",
     RECEIVE_CONFIRM_TRANSACTION = "receive_confirm_transaction",
     REQUEST_QUOTE_START         = "request_quote_start",
