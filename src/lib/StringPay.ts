@@ -109,7 +109,7 @@ export class StringPay {
         // Create iframe in dom
         const iframe = document.createElement("iframe");
         iframe.style.width = "100vh";
-        iframe.style.height = "700px";
+        iframe.style.height = "900px";
         iframe.style.overflow = "none";
         iframe.src = this._IFRAME_URL;
 
