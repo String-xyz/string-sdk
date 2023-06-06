@@ -1,9 +1,9 @@
-import type { ApiClient, TransactionRequest, Quote } from './apiClient.service';
+import type { ApiClient, Quote, ExecutionRequest } from './apiClient.service';
 
 export function createQuoteService(apiClient: ApiClient): QuoteService {
 	let interval: NodeJS.Timer | undefined;
 
-	async function startQuote(payload: TransactionRequest, callback: (quote: Quote | null, err: any) => void) {
+	async function startQuote(payload: ExecutionRequest, callback: (quote: Quote | null, err: any) => void) {
 		_refreshQuote(payload, callback);
 
 		if (interval) {
@@ -18,7 +18,7 @@ export function createQuoteService(apiClient: ApiClient): QuoteService {
 		interval = undefined;
 	}
 
-	async function _refreshQuote(payload: TransactionRequest, callback: (quote: Quote | null, err: any) => void) {
+	async function _refreshQuote(payload: ExecutionRequest, callback: (quote: Quote | null, err: any) => void) {
 		try {
 			const quote = await apiClient.getQuote(payload);
 			callback(quote, null);
@@ -35,6 +35,6 @@ export function createQuoteService(apiClient: ApiClient): QuoteService {
 }
 
 export interface QuoteService {
-	startQuote: (payload: TransactionRequest, callback: (quote: Quote | null, err: any) => void) => Promise<void>;
+	startQuote: (payload: ExecutionRequest, callback: (quote: Quote | null, err: any) => void) => Promise<void>;
 	stopQuote: () => void;
 }

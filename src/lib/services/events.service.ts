@@ -1,5 +1,5 @@
 import type { StringPay, StringPayload } from "../StringPay";
-import type { ApiClient, ExecutionRequest, TransactionRequest, Quote, PaymentInfo, User, UserUpdate } from "./apiClient.service";
+import type { ApiClient, ExecutionRequest, Quote, User, UserUpdate, TransactionRequest } from "./apiClient.service";
 import type { LocationService } from "./location.service";
 import type { QuoteService } from "./quote.service";
 import type { AuthService } from "./auth.service";
@@ -21,6 +21,8 @@ export enum Events {
     RECEIVE_EMAIL_PREVIEW       = "receive_email_preview",
     REQUEST_DEVICE_VERIFICATION = "request_device_verification",
     RECEIVE_DEVICE_VERIFICATION = "receive_device_verification",
+    REQUEST_SAVED_CARDS         = "request_saved_cards",
+    RECEIVE_SAVED_CARDS         = "receive_saved_cards",
     REQUEST_CONFIRM_TRANSACTION = "request_confirm_transaction",
     RECEIVE_CONFIRM_TRANSACTION = "receive_confirm_transaction",
     REQUEST_QUOTE_START         = "request_quote_start",
@@ -100,6 +102,7 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
     eventHandlers[Events.REQUEST_EMAIL_VERIFICATION]  = onEmailVerification;
     eventHandlers[Events.REQUEST_EMAIL_PREVIEW]       = onEmailPreview;
     eventHandlers[Events.REQUEST_DEVICE_VERIFICATION] = onDeviceVerification;
+    eventHandlers[Events.REQUEST_SAVED_CARDS]         = onRequestSavedCards;
     eventHandlers[Events.REQUEST_QUOTE_START]         = onQuoteStart;
     eventHandlers[Events.REQUEST_QUOTE_STOP]          = onQuoteStop;
     eventHandlers[Events.REQUEST_CONFIRM_TRANSACTION] = onConfirmTransaction;
@@ -200,20 +203,22 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
             let nonce: string;
             let signature: string;
     
-            const previous = await authService.getPreviousSignature();
+            const previous = await authService.getPreviousLogin();
             nonce = previous.nonce;
             signature = previous.signature;
+        
+            const visitor = previous.visitor;
 
             if (!previous.signature) {
                 nonce = (await apiClient.requestLogin(data.walletAddress)).nonce;
                 signature = await authService.requestSignature(data.walletAddress, nonce);
             }
     
-            await apiClient.requestDeviceVerification(nonce, signature, previous.visitor);
+            await apiClient.requestDeviceVerification(nonce, signature, visitor);
 
             clearInterval(deviceCheckInterval);
             deviceCheckInterval = setInterval(async () => {
-                const { status } = await apiClient.getDeviceStatus(nonce, signature, previous.visitor);
+                const { status } = await apiClient.getDeviceStatus(nonce, signature, visitor);
                 if (status == "verified") {
                     sendEvent(frame, Events.RECEIVE_DEVICE_VERIFICATION, { status });
                     clearInterval(deviceCheckInterval);
@@ -233,7 +238,7 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
             let nonce: string;
             let signature: string;
 
-            const previous = await authService.getPreviousSignature();
+            const previous = await authService.getPreviousLogin();
             nonce = previous.nonce;
             signature = previous.signature;
 
@@ -250,10 +255,21 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
         }
     }
 
+    async function onRequestSavedCards(event: StringEvent, { frame }: StringPay) {
+        if (!frame) throw new Error("Iframe not ready");
+
+        try {
+            const cards = await apiClient.getSavedCards();
+
+            sendEvent(frame, Events.RECEIVE_SAVED_CARDS, { cards });
+        } catch (error: any) {
+            sendEvent(frame, Events.RECEIVE_SAVED_CARDS, {}, error);
+        }
+    }
     async function onQuoteStart(event: StringEvent, { frame, payload }: StringPay) {
         if (!frame) throw new Error("Iframe not ready");
 
-        const quotePayload = <TransactionRequest>payload;
+        const quotePayload = <ExecutionRequest>payload;
 
         const callback = (quote: Quote | null, err: any) => sendEvent(frame, Events.QUOTE_CHANGED, { quote, err });
         quoteService.startQuote(quotePayload, callback);
@@ -267,11 +283,7 @@ export function createEventsService(iframeUrl: string, authService: AuthService,
         if (!stringPay.frame) throw new Error("Iframe not ready");
 
         try {
-            const paymentInfo = <PaymentInfo>{};
-            paymentInfo.cardToken = event.data.cardToken;
-
-            const data = <ExecutionRequest>event.data;
-            data.paymentInfo = paymentInfo;
+            const data = <TransactionRequest>event.data;
 
             const txRes = await apiClient.transact(data);
             sendEvent(stringPay.frame, Events.RECEIVE_CONFIRM_TRANSACTION, txRes);
