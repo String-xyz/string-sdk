@@ -1,5 +1,5 @@
 import type { StringPay, StringPayload } from "../StringPay";
-import type { ApiClient, ExecutionRequest, Quote, PaymentInfo, User, UserUpdate, VisitorData, TransactionRequest } from "./apiClient.service";
+import type { ApiClient, ExecutionRequest, Quote, User, UserUpdate, TransactionRequest } from "./apiClient.service";
 import type { LocationService } from "./location.service";
 import type { QuoteService } from "./quote.service";
 import type { AuthService } from "./auth.service";
