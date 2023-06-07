@@ -202,7 +202,17 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         }
     }
 
-    async function getQuote(payload: TransactionRequest) {
+    async function getSavedCards() {
+        try {
+            const { data } = await httpClient.get(`/cards`);
+            return data;
+        } catch (e: any) {
+            const error = _getErrorFromAxiosError(e);
+            throw error;
+        }
+    }
+   
+    async function getQuote(payload: ExecutionRequest) {
         try {
             const request = () => httpClient.post(`/quotes`, payload);
             const { data } = await authInterceptor<{ data: Quote }>(request);
@@ -214,7 +224,7 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         }
     }
 
-    async function transact(payload: ExecutionRequest) {
+    async function transact(payload: TransactionRequest) {
         try {
             const request = () => httpClient.post(`/transactions`, payload);
             const { data } = await authInterceptor<{
@@ -270,6 +280,7 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
         getUserStatus,
         getDeviceStatus,
         getUserEmailPreview,
+        getSavedCards,
         getQuote,
         transact,
         setWalletAddress,
@@ -288,8 +299,9 @@ export interface ApiClient {
     getUserStatus: (userId: string) => Promise<{ status: string }>;
     getDeviceStatus: (nonce: string, signature: string, visitor: VisitorData) => Promise<{ status: string }>;
     getUserEmailPreview: (nonce: string, signature: string) => Promise<{ email: string }>;
-    getQuote: (request: TransactionRequest) => Promise<Quote>;
-    transact: (request: ExecutionRequest) => Promise<TransactionResponse>;
+    getSavedCards: () => Promise<SavedCardResponse[]>;
+    getQuote: (request: ExecutionRequest) => Promise<Quote>;
+    transact: (request: TransactionRequest) => Promise<TransactionResponse>;
     setWalletAddress: (walletAddress: string) => void;
 }
 
@@ -335,7 +347,7 @@ export interface VisitorData {
     requestId?: string;
 }
 
-export interface TransactionRequest {
+export interface ExecutionRequest {
     userAddress: string;
     assetName: string;
     chainID: number;
@@ -357,7 +369,7 @@ export interface Estimate {
 }
 
 export interface Quote {
-    transactionRequest: TransactionRequest;
+    request: ExecutionRequest;
     estimate: Estimate;
     signature: string;
 }
@@ -366,9 +378,10 @@ export interface PaymentInfo {
     cardToken?: string;
     cardId?: string;
     cvv?: string;
+    saveCard?: boolean;
 }
 
-export interface ExecutionRequest {
+export interface TransactionRequest {
     quote: Quote;
     paymentInfo: PaymentInfo;
 }
@@ -376,6 +389,18 @@ export interface ExecutionRequest {
 export interface TransactionResponse {
     txID: string;
     txUrl: string;
+    txTimestamp: string;
+}
+
+export interface SavedCardResponse {
+	type: string;
+	id: string;
+	scheme: string;
+	last4: string;
+	expiryMonth: number;
+	expiryYear: number;
+	expired: boolean;
+	cardType: string;
 }
 
 export interface ApiClientOptions {
