@@ -54,7 +54,7 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
 			});
 
 			return signature;
-		} catch (err) {
+		} catch (err: any) {
 			console.log("SDK :: Wallet signature error: ", err);
 			throw err;
 		}
@@ -64,7 +64,7 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
 		try {
 			const { user } = await apiClient.refreshToken(walletAddress);
 			return user;
-		} catch (err) {
+		} catch (err: any) {
 			throw err;
 		}
 	}
@@ -81,7 +81,7 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
                     return status
                 }
             }, 5000);
-        } catch  (err){
+        } catch  (err: any){
             throw err
         }
     }
@@ -104,7 +104,7 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
             return email;
 
         }
-        catch (err) {
+        catch (err: any) {
             throw err
         }
     }
@@ -133,7 +133,7 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
                     return status
                 }
             }, 5000);
-        } catch (err) {
+        } catch (err: any) {
             throw err;
         }
     }
@@ -141,7 +141,7 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
     const updateUser = async (userId: string, userUpdate: UserUpdate) => {
         try {
             return await apiClient.updateUser(userId, userUpdate);
-        } catch (err) {
+        } catch (err: any) {
             throw err;
         }
     }
@@ -149,7 +149,7 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
     const logout = async () => {
 		try {
 			await apiClient.logoutUser();
-		} catch (err) {
+		} catch (err: any) {
 			throw err;
 		}
 	}
