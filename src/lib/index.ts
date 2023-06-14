@@ -1,4 +1,3 @@
-import StringPayButton from './StringPayButton.svelte';
-import type { StringPayload } from './StringPay';
+import StringPayButton from "./StringPayButton.svelte";
 
-export { StringPayButton, type StringPayload };
+export { StringPayButton };

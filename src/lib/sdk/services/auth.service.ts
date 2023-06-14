@@ -1,89 +1,87 @@
-import type { ApiClient, User,  UserUpdate } from "./apiClient.service";
-import type { LocationService, VisitorData } from './location.service';
+import type { ApiClient, User, UserUpdate } from "./apiClient.service";
+import type { LocationService, VisitorData } from "./location.service";
 
 export function createAuthService({ apiClient, locationService, bypassDeviceCheck }: AuthServiceParams): AuthService {
-	let emailCheckInterval: NodeJS.Timer | undefined;
+    let emailCheckInterval: NodeJS.Timer | undefined;
     let deviceCheckInterval: NodeJS.Timer | undefined;
     const previousAttempt = { signature: "", nonce: "" };
 
     const authorizeUser = async (walletAddress: string) => {
-		const { nonce } = await apiClient.requestLogin(walletAddress);
-		const signature = await requestSignature(walletAddress, nonce);
-		const visitorData = await locationService.getVisitorData();
-        
+        const { nonce } = await apiClient.requestLogin(walletAddress);
+        const signature = await requestSignature(walletAddress, nonce);
+        const visitorData = await locationService.getVisitorData();
 
-		// is there a better way to do this? I'm concerned about keeping this state in memory and not in local storage
-		previousAttempt.nonce = nonce;
-		previousAttempt.signature = signature;
+        // is there a better way to do this? I'm concerned about keeping this state in memory and not in local storage
+        previousAttempt.nonce = nonce;
+        previousAttempt.signature = signature;
 
-		try {
-			const data = await apiClient.createUser(nonce, signature, visitorData);
-			return data;
-		} catch (err: any) {
-			// if user already exists, try to login
-			if (err.code === "CONFLICT") return apiClient.loginUser(nonce, signature, visitorData, bypassDeviceCheck);
-			throw err;
-		}
-	};
+        try {
+            const data = await apiClient.createUser(nonce, signature, visitorData);
+            return data;
+        } catch (err: any) {
+            // if user already exists, try to login
+            if (err.code === "CONFLICT") return apiClient.loginUser(nonce, signature, visitorData, bypassDeviceCheck);
+            throw err;
+        }
+    };
 
     const getPreviousSignature = async () => {
-		// TODO: Use refresh token instead
-		// TODO: Modify refresh token endpoint to verify visitor data
-		if (!previousAttempt.signature) throw { code: "UNAUTHORIZED" };
+        // TODO: Use refresh token instead
+        // TODO: Modify refresh token endpoint to verify visitor data
+        if (!previousAttempt.signature) throw { code: "UNAUTHORIZED" };
 
-		const visitorData = await locationService.getVisitorData();
+        const visitorData = await locationService.getVisitorData();
 
-		if (!visitorData) throw new Error("cannot get device data");
+        if (!visitorData) throw new Error("cannot get device data");
 
-		return { nonce: previousAttempt.nonce, signature: previousAttempt.signature, visitor: visitorData}  
-	};
+        return { nonce: previousAttempt.nonce, signature: previousAttempt.signature, visitor: visitorData };
+    };
 
+    /**
+     * Prompts the user to sign a message using their wallet
+     * @param userAddress - The user's wallet address
+     * @param encodedMessage - The nonce encoded in base64
+     * @returns The signature of the message
+     */
+    const requestSignature = async (userAddress: string, encodedMessage: string) => {
+        try {
+            const message = window.atob(encodedMessage);
+            const signature = await window.ethereum.request({
+                method: "personal_sign",
+                params: [message, userAddress],
+            });
 
-	/** 
-	 * Prompts the user to sign a message using their wallet
-	 * @param userAddress - The user's wallet address
-	 * @param encodedMessage - The nonce encoded in base64
-	 * @returns The signature of the message
-	 */
-	const requestSignature = async (userAddress: string, encodedMessage: string) => {
-		try {
-			const message = window.atob(encodedMessage);
-			const signature = await window.ethereum.request({
-				method: 'personal_sign',
-				params: [message, userAddress],
-			});
+            return signature;
+        } catch (error) {
+            console.log("SDK :: Wallet signature error: ", error);
+        }
+    };
 
-			return signature;
-		} catch (error) {
-			console.log("SDK :: Wallet signature error: ", error);
-		}
-	}
-
-	const fetchLoggedInUser = async (walletAddress: string) => {
-		try {
-			const { user } = await apiClient.refreshToken(walletAddress);
-			return user;
-		} catch (error: any) {
-			return error;
-		}
-	}
+    const fetchLoggedInUser = async (walletAddress: string) => {
+        try {
+            const { user } = await apiClient.refreshToken(walletAddress);
+            return user;
+        } catch (e: any) {
+            return null;
+        }
+    };
 
     const emailVerification = async (userId: string, email: string) => {
         try {
             await apiClient.requestEmailVerification(userId, email);
-            
+
             clearInterval(emailCheckInterval);
             emailCheckInterval = setInterval(async () => {
                 const { status } = await apiClient.getUserStatus(userId);
                 if (status == "email_verified") {
                     clearInterval(emailCheckInterval);
-                    return status
+                    return status;
                 }
             }, 5000);
-        } catch  (error: any){
-            return error
+        } catch (error: any) {
+            return error;
         }
-    }
+    };
 
     const emailPreview = async (walletAddress: string) => {
         try {
@@ -101,18 +99,16 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
 
             const { email } = await apiClient.getUserEmailPreview(nonce, signature);
             return email;
-
+        } catch (error: any) {
+            return error;
         }
-        catch (error: any) {
-            return error
-        }
-    }
+    };
 
     const deviceVerification = async (walletAddress: string) => {
         try {
             let nonce: string;
             let signature: string;
-    
+
             const previous = await getPreviousSignature();
             nonce = previous.nonce;
             signature = previous.signature;
@@ -121,7 +117,7 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
                 nonce = (await apiClient.requestLogin(walletAddress)).nonce;
                 signature = await requestSignature(walletAddress, nonce);
             }
-    
+
             await apiClient.requestDeviceVerification(nonce, signature, previous.visitor);
 
             clearInterval(deviceCheckInterval);
@@ -129,13 +125,13 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
                 const { status } = await apiClient.getDeviceStatus(nonce, signature, previous.visitor);
                 if (status == "verified") {
                     clearInterval(deviceCheckInterval);
-                    return status
+                    return status;
                 }
             }, 5000);
         } catch (error: any) {
             return error;
         }
-    }
+    };
 
     const updateUser = async (userId: string, userUpdate: UserUpdate) => {
         try {
@@ -143,40 +139,40 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
         } catch (err: any) {
             return err;
         }
-    }
+    };
 
     const logout = async () => {
-		try {
-			await apiClient.logoutUser();
-		} catch (err: any) {
-			return err;
-		}
-	}
+        try {
+            await apiClient.logoutUser();
+        } catch (err: any) {
+            return err;
+        }
+    };
 
     const cleanup = () => {
         clearInterval(emailCheckInterval);
         clearInterval(deviceCheckInterval);
-    }
+    };
 
-	return {
+    return {
         authorizeUser,
         emailVerification,
         emailPreview,
         deviceVerification,
         fetchLoggedInUser,
-		requestSignature,
-		getPreviousSignature,
+        requestSignature,
+        getPreviousSignature,
         updateUser,
         logout,
-        cleanup
+        cleanup,
     };
 }
 
 export interface AuthService {
-	authorizeUser: (walletAddress: string) => Promise<any>;
+    authorizeUser: (walletAddress: string) => Promise<any>;
     fetchLoggedInUser: (walletAddress: string) => Promise<User | null>;
-	requestSignature: (userAddress: string, encodedMessage: string) => Promise<string>;
-	getPreviousSignature: () => Promise<{nonce: string, signature: string, visitor: VisitorData}>;
+    requestSignature: (userAddress: string, encodedMessage: string) => Promise<string>;
+    getPreviousSignature: () => Promise<{ nonce: string; signature: string; visitor: VisitorData }>;
     emailVerification: (userId: string, email: string) => Promise<any>;
     emailPreview: (walletAddress: string) => Promise<any>;
     deviceVerification: (walletAddress: string) => Promise<any>;
@@ -186,7 +182,7 @@ export interface AuthService {
 }
 
 export interface AuthServiceParams {
-	apiClient: ApiClient;
-	locationService: LocationService;
-	bypassDeviceCheck: boolean;
+    apiClient: ApiClient;
+    locationService: LocationService;
+    bypassDeviceCheck: boolean;
 }
