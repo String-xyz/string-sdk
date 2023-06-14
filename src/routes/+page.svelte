@@ -56,7 +56,7 @@
 
 <div>
     <StringPayButton {payload} {disabled} />
-    <!-- <div class="string-checkout-frame" /> -->
-    <div class="string-payment-frame" />
+    <div class="string-checkout-frame" />
+    <!-- <div class="string-payment-frame" /> -->
     <button class="btn btn-secondary rounded border-2 tracking-wider text-white h-11" on:click={() => submit()}>Submit</button>
 </div>
