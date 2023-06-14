@@ -9,19 +9,19 @@ const defaultConfigs: Record<Environment, DefaultConfig> = {
         ...commonConfig,
         apiUrl: "https://api.string-api.xyz",
         checkoutIframeUrl: "https://iframe.string-api.xyz",
-        paymentIframeUrl: "https://payment.string-api.xyz",
+        paymentIframeUrl: "https://payment-iframe.string-api.xyz/?env=prod&appType=web",
     },
     SANDBOX: {
         ...commonConfig,
         apiUrl: "https://api.sandbox.string-api.xyz",
         checkoutIframeUrl: "https://iframe-app.dev.string-api.xyz",
-        paymentIframeUrl: "https://payment-app.dev.string-api.xyz",
+        paymentIframeUrl: "https://payment-iframe.string-api.xyz/?env=dev&appType=web",
     },
     DEV: {
         ...commonConfig,
         apiUrl: "https://string-api.dev.string-api.xyz",
         checkoutIframeUrl: "https://iframe-app.dev.string-api.xyz",
-        paymentIframeUrl: "https://payment-app.dev.string-api.xyz",
+        paymentIframeUrl: "https://payment-iframe.string-api.xyz/?env=dev&appType=web",
     },
     LOCAL: {
         ...commonConfig,
