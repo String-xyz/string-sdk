@@ -1,6 +1,6 @@
 import type { Services } from "$lib/sdk/services";
 import type { ExecutionRequest, Quote, TransactionRequest, UserUpdate } from "$lib/sdk/services/apiClient.service";
-import type { Config } from "../../config";
+import type { Config } from "$lib/sdk/config";
 import type { EventHandlers, IframeEvent, IframeEventSender } from "../common";
 import { createCheckoutIframePayload } from "./utils";
 
