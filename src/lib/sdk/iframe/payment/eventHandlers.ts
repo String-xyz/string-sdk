@@ -27,10 +27,7 @@ export function createEventHandlers(eventSender: IframeEventSender, config: Conf
     }
 
     async function onCardTokenized(reqEvent: IframeEvent): Promise<IframeEvent> {
-        const resEvent: IframeEvent = { eventName: "res_" + reqEvent.eventName };
-        console.log(">>>> Payment Card ");
-        // stringPay.isLoaded = true;
-        events.propagate(events.CARD_TOKENIZED, reqEvent.data.token);
+        events.propagate(events.CARD_TOKENIZED, reqEvent.data);
         return send(resEvent);
     }
 

@@ -26,21 +26,21 @@ export function createActions(iframe: StringIframe, config: Config, services: Se
      * Notify the payment iframe to submit the card details
      */
     async function submitCard() {
-        // return new Promise<string>((resolve, reject) => {
-        iframe.submitCard();
+        return new Promise<string>((resolve, reject) => {
+            iframe.submitCard();
 
-        // events.once(events.CARD_TOKENIZED, (token: string) => {
-        //     return resolve(token);
-        // });
+            events.once(events.CARD_TOKENIZED, (token: string) => {
+                return resolve(token);
+            });
 
-        // events.once(events.CARD_TOKENIZE_FAILED, (error) => {
-        //     return reject(error);
-        // });
-        // });
+            events.once(events.CARD_TOKENIZE_FAILED, (error) => {
+                return reject(error);
+            });
+        });
     }
 
     async function setStyle(style: any) {
-        iframe.setStyle(style);
+        iframe.setStyle();
     }
 
     async function getQuote() {

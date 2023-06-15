@@ -25,9 +25,9 @@ const defaultConfigs: Record<Environment, DefaultConfig> = {
     },
     LOCAL: {
         ...commonConfig,
-        apiUrl: "http://localhost:5555",
+        apiUrl: "http://localhost:4444",
         checkoutIframeUrl: "http://localhost:4040",
-        paymentIframeUrl: "http://localhost:4041",
+        paymentIframeUrl: "http://localhost:4041?env=dev&appType=web",
     },
 };
 
