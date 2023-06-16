@@ -9,26 +9,30 @@ export function createEventHandlers(eventSender: IframeEventSender, config: Conf
     const eventToHandlersMap: EventHandlers = {
         iframe_loaded: onIframeLoaded,
         card_tokenized: onCardTokenized,
-        // fingerprint: onFingerprint,
-        // iframe_ready: onIframeReady,
-        // card_submitted: onCardSubmitted,
-        // card_tokenize_failed: onCardTokenizeFailed,
-        // card_vendor_changed: onCardVendorChanged,
-        // card_validation_changed: onCardValidationChanged,
+        fingerprint: onFingerprint,
+        card_tokenize_failed: onCardTokenizeFailed,
+        card_vendor_changed: onCardVendorChanged,
+        card_validation_changed: onCardValidationChanged,
     };
 
     async function onIframeLoaded(reqEvent: IframeEvent): Promise<IframeEvent> {
         const resEvent: IframeEvent = { eventName: "res_" + reqEvent.eventName };
 
-        console.log(">>>> Payment Iframe loaded");
-        // stringPay.isLoaded = true;
         events.propagate(events.IFRAME_LOADED, "string-payment-iframe");
         return send(resEvent);
     }
 
-    async function onCardTokenized(reqEvent: IframeEvent): Promise<IframeEvent> {
-        events.propagate(events.CARD_TOKENIZED, reqEvent.data);
-        return send(resEvent);
+    async function onFingerprint(reqEvent: IframeEvent): Promise<IframeEvent> {
+        const visitorData = <VisitorData>reqEvent.data;
+        services.location.setCachedVisitorData(visitorData);
+    }
+
+    async function onCardTokenizeFailed(reqEvent: IframeEvent): Promise<IframeEvent> {
+        events.propagate(events.CARD_TOKENIZE_FAILED, reqEvent.data);
+    }
+
+    async function onCardVendorChanged(reqEvent: IframeEvent): Promise<IframeEvent> {
+        events.propagate(events.CARD_VENDOR_CHANGED, reqEvent.data);
     }
 
     return eventToHandlersMap;

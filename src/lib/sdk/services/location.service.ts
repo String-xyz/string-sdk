@@ -5,6 +5,7 @@ const apiKey = import.meta.env.VITE_ANALYTICS_LIB_PK || "";
 
 export function createLocationService(options = {}): LocationService {
     let fpInstance: FingerprintJS.Agent | undefined;
+    let cachedData: VisitorData | undefined;
 
     async function getFPInstance() {
         const loadOptions = {
@@ -37,7 +38,24 @@ export function createLocationService(options = {}): LocationService {
         }
     }
 
-    return { getFPInstance, getVisitorData };
+    async function getCachedVisitorData() {
+        if (!cachedData) {
+            cachedData = await getVisitorData();
+        }
+
+        return cachedData;
+    }
+
+    function setCachedVisitorData(visitorData: VisitorData) {
+        cachedData = visitorData;
+    }
+
+    return {
+        getFPInstance,
+        getVisitorData,
+        setCachedVisitorData,
+        getCachedVisitorData,
+    };
 }
 
 export interface VisitorData {
@@ -48,4 +66,6 @@ export interface VisitorData {
 export interface LocationService {
     getFPInstance: () => Promise<FingerprintJS.Agent>;
     getVisitorData: (options?: { extendedResult: boolean }) => Promise<VisitorData | undefined>;
+    getCachedVisitorData: () => Promise<VisitorData | undefined>;
+    setCachedVisitorData: (visitorData: VisitorData) => void;
 }
