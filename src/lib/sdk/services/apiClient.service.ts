@@ -2,7 +2,7 @@ import axios from "redaxios";
 
 // TODO: Fix timeout issue
 
-export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClient {
+export function createApiClient(baseUrl: string, apiKey: string): ApiClient {
     let _userWalletAddress = "";
 
     const commonHeaders: any = {
@@ -188,10 +188,10 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
             fingerprint: {
                 visitorId: "",
                 requestId: "",
-            }
-        }
+            },
+        };
         try {
-            const { data } = await httpClient.post<{email: string}>(`/users/preview-email`, body, {
+            const { data } = await httpClient.post<{ email: string }>(`/users/preview-email`, body, {
                 headers: authHeaders,
             });
 
@@ -211,7 +211,7 @@ export function createApiClient({ baseUrl, apiKey }: ApiClientOptions): ApiClien
             throw error;
         }
     }
-   
+
     async function getQuote(payload: ExecutionRequest) {
         try {
             const request = () => httpClient.post(`/quotes`, payload);
@@ -393,14 +393,14 @@ export interface TransactionResponse {
 }
 
 export interface SavedCardResponse {
-	type: string;
-	id: string;
-	scheme: string;
-	last4: string;
-	expiryMonth: number;
-	expiryYear: number;
-	expired: boolean;
-	cardType: string;
+    type: string;
+    id: string;
+    scheme: string;
+    last4: string;
+    expiryMonth: number;
+    expiryYear: number;
+    expired: boolean;
+    cardType: string;
 }
 
 export interface ApiClientOptions {
