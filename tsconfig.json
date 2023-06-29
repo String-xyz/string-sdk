@@ -1,15 +1,26 @@
 {
-	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
-		"allowJs": true,
+		"baseUrl": ".",
 		"checkJs": true,
+		"allowJs": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
-		"resolveJsonModule": true,
+		// "resolveJsonModule": true,
 		"skipLibCheck": true,
 		"sourceMap": false,
 		"strict": true,
 		"removeComments": true,
 		"strictPropertyInitialization": false,
-	}
-}
+		"target": "es2017",
+		"module": "NodeNext",                                /* Specify what module code is generated. */
+		"rootDir": "./src",          /* Allow 'import x from y' when a module doesn't have a default export. */
+		"declaration": true,
+		"declarationDir": "./types", // directory to emit declaration files
+		"lib": ["dom", "es6"],
+		"paths": {
+		"@src/*": ["./src/*"],
+	  }
+	},
+	"files": ["src/types.ts"], // only include these files in the final output
+  }
+  
