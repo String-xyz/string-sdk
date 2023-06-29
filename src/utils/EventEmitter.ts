@@ -1,4 +1,4 @@
-import { Callback } from "@src/types";
+import { Callback } from "../types";
 
 /* eslint-disable no-prototype-builtins */
 export class EventEmitter {

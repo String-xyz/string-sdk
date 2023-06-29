@@ -1,4 +1,4 @@
-import type { Config } from "@src/types";
+import type { Config } from "../types";
 import { createApiClient } from "./apiClient.service";
 import { createLocationService } from "./location.service";
 import { createAuthService } from "./auth.service";

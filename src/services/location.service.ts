@@ -1,7 +1,7 @@
 // TODO: move fingerprint stuff to the iframes and left only the cached data management here
 
 import * as FingerprintJS from "@fingerprintjs/fingerprintjs-pro";
-import type { Config, LocationService, VisitorData } from "@src/types";
+import type { Config, LocationService, VisitorData } from "../types";
 
 const CUSTOM_SUBDOMAIN = "https://metrics.string.xyz";
 

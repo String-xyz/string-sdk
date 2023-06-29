@@ -18,11 +18,10 @@ export function init(options: UserOptions): StringPay {
     }
 
     const iframe = createIframe(config, services);
+
     const actions = createStringPay(iframe, config, services);
 
-    return {
-        ...actions,
-    };
+    return actions;
 }
 
 export type * from "./config";

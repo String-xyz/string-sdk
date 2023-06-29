@@ -1,4 +1,5 @@
-import type { Services, VisitorData, EventHandlers, IframeEvent, IframeEventSender } from "@src/types";
+import type { VisitorData, EventHandlers, IframeEvent, IframeEventSender } from "../../types";
+import type { Services } from "../../services";
 
 export function createEventHandlers(eventSender: IframeEventSender, services: Services): EventHandlers {
     const send = eventSender.sendEvent;
@@ -37,11 +38,13 @@ export function createEventHandlers(eventSender: IframeEventSender, services: Se
     }
 
     async function onCardVendorChanged(reqEvent: IframeEvent) {
+        console.log("SDK: Validation changed: ", reqEvent);
         events.propagate(events.CARD_VENDOR_CHANGED, reqEvent.data);
         return send({ eventName: "res_" + reqEvent.eventName });
     }
 
     async function onCardValidationChanged(reqEvent: IframeEvent) {
+        console.log("--- Card validation changed", reqEvent);
         events.propagate(events.CARD_VALIDATION_CHANGED, reqEvent.data);
         return send({ eventName: "res_" + reqEvent.eventName });
     }

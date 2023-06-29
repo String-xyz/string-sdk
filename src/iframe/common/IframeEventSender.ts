@@ -1,4 +1,4 @@
-import type { IframeEvent, IframeEventSender } from "@src/types";
+import type { IframeEvent, IframeEventSender } from "../../types";
 
 export function createIframeEventSender(channel: string, frame: HTMLIFrameElement): IframeEventSender {
     /* ---------------------------------------------------------------- */

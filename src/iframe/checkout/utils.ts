@@ -1,4 +1,4 @@
-import type { User, StringPayload, CheckoutIframePayload, NFT } from "@src/types";
+import type { User, StringPayload, CheckoutIframePayload, NFT } from "../../types";
 
 // Parse payload before sending it to the iframe
 export function createCheckoutIframePayload(payload: StringPayload, user: User | null): CheckoutIframePayload {

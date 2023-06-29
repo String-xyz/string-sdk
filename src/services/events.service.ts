@@ -1,4 +1,3 @@
-import { Events } from "@src/types";
 import { EventEmitter } from "../utils/EventEmitter";
 
 export enum Events {

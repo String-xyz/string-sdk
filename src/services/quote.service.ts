@@ -1,4 +1,4 @@
-import { QuoteService, ApiClient, Quote, ExecutionRequest } from "@src/types";
+import { QuoteService, ApiClient, Quote, ExecutionRequest } from "../types";
 
 export function createQuoteService(apiClient: ApiClient): QuoteService {
     let interval: NodeJS.Timer | undefined;

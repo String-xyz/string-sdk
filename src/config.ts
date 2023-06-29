@@ -43,13 +43,8 @@ export function createConfig(options: UserOptions): Config {
     const config: Config = {
         ...defaultConfig,
         apiKeyPublic: options.apiKeyPublic,
-        payload: options.payload,
         bypassDeviceCheck: options.bypassDeviceCheck || false,
     };
-
-    if (!config.payload.gasLimit) {
-        config.payload.gasLimit = "8000000";
-    }
 
     return config;
 }

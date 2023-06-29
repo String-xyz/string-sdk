@@ -1,7 +1,14 @@
-import type { Config, ExecutionRequest, TransactionRequest, UserUpdate, EventHandlers, IframeEvent, IframeEventSender, Services } from "@src/types";
+import type { Config, ExecutionRequest, TransactionRequest, UserUpdate, EventHandlers, IframeEvent, IframeEventSender, StringPayload } from "../../types";
+import type { Services } from "../../services";
 import { createCheckoutIframePayload } from "./utils";
 
-export function createEventHandlers(iframeElement: HTMLIFrameElement, eventSender: IframeEventSender, config: Config, services: Services): EventHandlers {
+export function createEventHandlers(
+    iframeElement: HTMLIFrameElement,
+    eventSender: IframeEventSender,
+    config: Config,
+    payload: StringPayload,
+    services: Services,
+): EventHandlers {
     const send = eventSender.sendEvent;
     const events = services.events;
 
@@ -25,10 +32,9 @@ export function createEventHandlers(iframeElement: HTMLIFrameElement, eventSende
         const resEvent: IframeEvent = { eventName: "res_" + reqEvent.eventName };
 
         try {
-            const user = await services.auth.fetchLoggedInUser(config.payload.userAddress);
-            const iframePayload = createCheckoutIframePayload(config.payload, user);
+            const user = await services.auth.fetchLoggedInUser(payload.userAddress);
+            const iframePayload = createCheckoutIframePayload(payload, user);
 
-            // stringPay.isLoaded = true;
             events.propagate(events.IFRAME_LOADED, "string-payment-iframe");
 
             resEvent.data = iframePayload;
@@ -65,7 +71,7 @@ export function createEventHandlers(iframeElement: HTMLIFrameElement, eventSende
         const resEvent: IframeEvent = { eventName: "res_" + reqEvent.eventName };
 
         try {
-            const { user } = await services.auth.authorizeUser(config.payload.userAddress);
+            const user = await services.auth.authorizeUser(payload.userAddress);
 
             resEvent.data = user;
         } catch (e: any) {
@@ -153,7 +159,7 @@ export function createEventHandlers(iframeElement: HTMLIFrameElement, eventSende
         const resEvent: IframeEvent = { eventName: "res_" + reqEvent.eventName };
 
         try {
-            const quotePayload = <ExecutionRequest>config.payload;
+            const quotePayload = <ExecutionRequest>payload;
             const quote = await services.apiClient.getQuote(quotePayload);
 
             resEvent.data = quote;

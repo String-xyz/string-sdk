@@ -1,4 +1,4 @@
-import type { IframeEvent, EventHandlers, IframeEventListener } from "@src/types";
+import type { IframeEvent, EventHandlers, IframeEventListener } from "../../types";
 
 export function createIframeEventListener(channel: string, frame: HTMLIFrameElement, handlers: EventHandlers): IframeEventListener {
     async function startListening() {

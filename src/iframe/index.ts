@@ -1,4 +1,5 @@
-import type { Config, StringIframe, Services } from "@src/types";
+import { Services } from "../services";
+import type { Config, StringIframe } from "../types";
 import { createCheckoutIframe } from "./checkout";
 import { createPaymentIframe } from "./payment";
 

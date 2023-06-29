@@ -1,4 +1,5 @@
-import type { Services, Config, StringIframe } from "@src/types";
+import { Services } from "../../services";
+import type { Config, StringIframe } from "../../types";
 import { createIframeEventListener, createIframeEventSender } from "../common/index";
 import { createEventHandlers } from "./eventHandlers";
 

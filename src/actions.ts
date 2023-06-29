@@ -1,11 +1,11 @@
-import type { Config, StringPay, StringIframe, ExecutionRequest, Quote, TransactionRequest } from "@src/types";
+import type { Config, StringPay, StringIframe, ExecutionRequest, Quote, TransactionRequest, StringPayload, User } from "./types";
 import type { Services } from "./services/index";
 
 export function createStringPay(iframe: StringIframe, config: Config, services: Services): StringPay {
     const events = services.events;
 
-    async function loadIframe() {
-        return iframe.load();
+    async function loadIframe(payload: StringPayload) {
+        return iframe.load(payload);
     }
 
     async function setStyle(style: any) {
@@ -18,7 +18,7 @@ export function createStringPay(iframe: StringIframe, config: Config, services: 
             throw new Error("Wallet address not found");
         }
 
-        return (await services.auth.authorizeUser(walletAddress)).user;
+        return services.auth.authorizeUser(walletAddress);
     }
 
     async function verifyEmail(userId: string, email: string) {
@@ -30,9 +30,9 @@ export function createStringPay(iframe: StringIframe, config: Config, services: 
         return services.auth.deviceVerification(walletAddress);
     }
 
-    async function getQuote(): Promise<Quote> {
-        const payload = <ExecutionRequest>config.payload;
-        return services.quote.getQuote(payload);
+    async function getQuote(payload: StringPayload): Promise<Quote> {
+        const executionRequest = <ExecutionRequest>payload;
+        return services.quote.getQuote(executionRequest);
     }
 
     /**
@@ -57,9 +57,9 @@ export function createStringPay(iframe: StringIframe, config: Config, services: 
         return services.apiClient.transact(request);
     }
 
-    function subscribeToQuote(callback: (quote: Quote) => void) {
-        const payload = <ExecutionRequest>config.payload;
-        services.quote.startQuote(payload, callback);
+    function subscribeToQuote(payload: StringPayload, callback: (quote: Quote) => void) {
+        const executionRequest = <ExecutionRequest>payload;
+        services.quote.startQuote(executionRequest, callback);
     }
 
     function unsubscribeFromQuote() {

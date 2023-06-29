@@ -1,4 +1,4 @@
-import { ApiClient, AuthResponse, ExecutionRequest, Quote, TransactionRequest, TransactionResponse, User, UserUpdate, VisitorData } from "@src/types";
+import { ApiClient, AuthResponse, ExecutionRequest, Quote, TransactionRequest, TransactionResponse, User, UserUpdate, VisitorData } from "../types";
 import axios from "redaxios"; // TODO: replace with axios **Note: there are weird issues when using rollup.js + axios **
 
 export function createApiClient(baseUrl: string, apiKey: string): ApiClient {

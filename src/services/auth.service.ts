@@ -1,10 +1,10 @@
-import type { AuthService, AuthServiceParams, UserUpdate } from "@src/types";
+import type { AuthService, AuthServiceParams, User, UserUpdate } from "../types";
 
 export function createAuthService({ apiClient, locationService, bypassDeviceCheck }: AuthServiceParams): AuthService {
     let deviceCheckInterval: NodeJS.Timer | undefined;
     const previousAttempt = { signature: "", nonce: "" };
 
-    const authorizeUser = async (walletAddress: string) => {
+    const authorizeUser = async (walletAddress: string): Promise<User> => {
         const { nonce } = await apiClient.requestLogin(walletAddress);
         const signature = await requestSignature(walletAddress, nonce);
         const visitorData = await locationService.getVisitorData();
@@ -14,11 +14,14 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
         previousAttempt.signature = signature;
 
         try {
-            const data = await apiClient.createUser(nonce, signature, visitorData);
-            return data;
+            const { user } = await apiClient.createUser(nonce, signature, visitorData);
+            return user;
         } catch (err: any) {
             // if user already exists, try to login
-            if (err.code === "CONFLICT") return apiClient.loginUser(nonce, signature, visitorData, bypassDeviceCheck);
+            if (err.code === "CONFLICT") {
+                const { user } = await apiClient.loginUser(nonce, signature, visitorData, bypassDeviceCheck);
+                return user;
+            }
             throw err;
         }
     };
@@ -41,6 +44,7 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
      * @param encodedMessage - The nonce encoded in base64
      * @returns The signature of the message
      */
+    // TODO: Move to the wallet service
     const requestSignature = async (userAddress: string, encodedMessage: string) => {
         try {
             const message = window.atob(encodedMessage);

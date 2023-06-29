@@ -1,6 +1,8 @@
-import type { Config, Services, IframeEventListener, StringIframe } from "@src/types";
+import type { Config, IframeEventListener, StringIframe } from "../../types";
+import type { Services } from "../../services";
 import { createIframeEventListener, createIframeEventSender } from "../common/index";
 import { createEventHandlers } from "./eventHandlers";
+import { StringPayload } from "../../types";
 
 export function createCheckoutIframe(config: Config, services: Services): StringIframe {
     const eventChannel = "string-checkout-frame";
@@ -15,7 +17,7 @@ export function createCheckoutIframe(config: Config, services: Services): String
 
     const eventSender = createIframeEventSender(eventChannel, iframeElement);
 
-    function load(): HTMLIFrameElement {
+    function load(payload: StringPayload): HTMLIFrameElement {
         if (!container) throw new Error("Unable to load String Frame, element 'string-pay-frame' does not exist");
 
         // Clear out any existing children
@@ -25,7 +27,7 @@ export function createCheckoutIframe(config: Config, services: Services): String
 
         container.appendChild(iframeElement);
 
-        _initEvents();
+        _initEvents(payload);
 
         return iframeElement;
     }
@@ -41,13 +43,13 @@ export function createCheckoutIframe(config: Config, services: Services): String
         if (eventListener) eventListener.stopListening();
     }
 
-    function _initEvents() {
+    function _initEvents(payload: StringPayload) {
         /* a iframe to sdk events protocol is composed of 3 components:
          * sender: send events to the iframe
          * handlers: handle events from the iframe
          * listeners: receive iframe events and map them to handler functions
          *  */
-        const handlers = createEventHandlers(iframeElement, eventSender, config, services);
+        const handlers = createEventHandlers(iframeElement, eventSender, config, payload, services);
         const listener = createIframeEventListener(eventChannel, iframeElement, handlers);
         listener.startListening();
 

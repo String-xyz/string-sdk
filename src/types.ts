@@ -168,17 +168,17 @@ export interface QuoteService {
 }
 
 export interface StringPay {
-    loadIframe(): Promise<HTMLIFrameElement>;
+    loadIframe(payload: StringPayload): Promise<HTMLIFrameElement>;
     setStyle(style: any): Promise<void>;
     authorizeUser(): Promise<User>;
     verifyEmail(userId: string, email: string): Promise<void>;
     verifyDevice(): Promise<void>;
-    getQuote(): Promise<Quote>;
-    submitCard(): Promise<string>;
-    submitTransaction(request: TransactionRequest): Promise<void>;
+    getQuote(payload: StringPayload): Promise<Quote>;
+    submitCard(): Promise<string>; // returns tokenized card
+    submitTransaction(request: TransactionRequest): Promise<TransactionResponse>;
 
     /* Events */
-    subscribeToQuote(callback: (quote: Quote) => void): void;
+    subscribeToQuote(payload: StringPayload, callback: (quote: Quote) => void): void;
     unsubscribeFromQuote(callback: (quote: Quote) => void): void;
     subscribeTo: (eventName: string, callback: (event: any) => void) => void;
     unsubscribeFrom: (eventName: string, callback: (event: any) => void) => void;
@@ -204,7 +204,7 @@ export interface IframeEvent<T = any> {
 }
 
 export interface StringIframe {
-    load: () => HTMLIFrameElement;
+    load: (payload: StringPayload) => HTMLIFrameElement;
     destroy: () => void;
     submitCard: () => Promise<void>;
     setStyle: (style: any) => void;
@@ -217,7 +217,7 @@ export interface IframeEventSender {
 }
 
 export interface AuthService {
-    authorizeUser: (walletAddress: string) => Promise<any>;
+    authorizeUser: (walletAddress: string) => Promise<User>;
     fetchLoggedInUser: (walletAddress: string) => Promise<User | null>;
     requestSignature: (userAddress: string, encodedMessage: string) => Promise<string>;
     getPreviousSignature: () => Promise<{ nonce: string; signature: string; visitor: VisitorData }>;
@@ -234,6 +234,11 @@ export interface AuthServiceParams {
     bypassDeviceCheck: boolean;
 }
 
+/* Extended config with user options */
+export interface Config extends DefaultConfig {
+    apiKeyPublic: string;
+}
+
 export type DefaultConfig = {
     apiUrl: string;
     checkoutIframeUrl: string;
@@ -246,13 +251,6 @@ export interface UserOptions {
     env: Environment;
     apiKeyPublic: string;
     bypassDeviceCheck?: boolean;
-    payload: StringPayload;
-}
-
-/* Extended config with user options */
-export interface Config extends DefaultConfig {
-    apiKeyPublic: string;
-    payload: StringPayload;
 }
 
 export interface StringPayload {
