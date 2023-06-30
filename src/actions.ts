@@ -1,4 +1,4 @@
-import type { Config, StringPay, StringIframe, ExecutionRequest, Quote, TransactionRequest, StringPayload, User } from "./types";
+import type { Config, StringPay, StringIframe, ExecutionRequest, Quote, TransactionRequest, StringPayload, User, UserUpdate } from "./types";
 import type { Services } from "./services/index";
 
 export function createStringPay(iframe: StringIframe, config: Config, services: Services): StringPay {
@@ -19,6 +19,11 @@ export function createStringPay(iframe: StringIframe, config: Config, services: 
         }
 
         return services.auth.authorizeUser(walletAddress);
+    }
+
+    async function updateUserName(userId: string, firstName: string, lastName: string) {
+        const update = {firstName, lastName}
+        return services.apiClient.updateUser(userId, update)
     }
 
     async function verifyEmail(userId: string, email: string) {
@@ -77,6 +82,7 @@ export function createStringPay(iframe: StringIframe, config: Config, services: 
     return {
         loadIframe,
         authorizeUser,
+        updateUserName,
         verifyEmail,
         verifyDevice,
         getQuote,

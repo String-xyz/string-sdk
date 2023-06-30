@@ -5,7 +5,7 @@ export interface NFT {
     price: string;
     currency: string;
     collection?: string;
-    imageSrc: string;
+    imageSrc?: string;
     imageAlt?: string;
 }
 
@@ -171,6 +171,7 @@ export interface StringPay {
     loadIframe(payload: StringPayload): Promise<HTMLIFrameElement>;
     setStyle(style: any): Promise<void>;
     authorizeUser(): Promise<User>;
+    updateUserName(userId: string, firstName: string, lastName: string): Promise<User>;
     verifyEmail(userId: string, email: string): Promise<void>;
     verifyDevice(): Promise<void>;
     getQuote(payload: StringPayload): Promise<Quote>;
@@ -258,7 +259,7 @@ export interface StringPayload {
     collection?: string;
     price: string;
     currency: string;
-    imageSrc: string;
+    imageSrc?: string;
     imageAlt?: string;
     chainID: number;
     userAddress: string;
