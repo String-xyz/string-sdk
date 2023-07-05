@@ -176,6 +176,7 @@ export interface StringPay {
     verifyDevice(): Promise<void>;
     getQuote(payload: StringPayload): Promise<Quote>;
     submitCard(): Promise<string>; // returns tokenized card
+    getSavedCards(): Promise<SavedCardResponse[]>;
     submitTransaction(request: TransactionRequest): Promise<TransactionResponse>;
 
     /* Events */

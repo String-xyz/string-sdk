@@ -58,6 +58,10 @@ export function createStringPay(iframe: StringIframe, config: Config, services: 
         });
     }
 
+    async function getSavedCards() {
+        return services.apiClient.getSavedCards();
+    }
+
     async function submitTransaction(request: TransactionRequest) {
         return services.apiClient.transact(request);
     }
@@ -91,6 +95,7 @@ export function createStringPay(iframe: StringIframe, config: Config, services: 
         subscribeTo,
         unsubscribeFrom,
         submitCard,
+        getSavedCards,
         submitTransaction,
         setStyle,
     };
