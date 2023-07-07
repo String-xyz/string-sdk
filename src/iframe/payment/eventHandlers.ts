@@ -17,7 +17,7 @@ export function createEventHandlers(eventSender: IframeEventSender, services: Se
     async function onIframeLoaded(reqEvent: IframeEvent): Promise<IframeEvent> {
         const resEvent: IframeEvent = { eventName: "res_" + reqEvent.eventName };
 
-        events.propagate(events.IFRAME_LOADED, "string-payment-iframe");
+        events.propagate(events.IFRAME_LOADED, "string-payment-frame");
         return send(resEvent);
     }
 
@@ -38,13 +38,11 @@ export function createEventHandlers(eventSender: IframeEventSender, services: Se
     }
 
     async function onCardVendorChanged(reqEvent: IframeEvent) {
-        console.log("SDK: Validation changed: ", reqEvent);
         events.propagate(events.CARD_VENDOR_CHANGED, reqEvent.data);
         return send({ eventName: "res_" + reqEvent.eventName });
     }
 
     async function onCardValidationChanged(reqEvent: IframeEvent) {
-        console.log("--- Card validation changed", reqEvent);
         events.propagate(events.CARD_VALIDATION_CHANGED, reqEvent.data);
         return send({ eventName: "res_" + reqEvent.eventName });
     }

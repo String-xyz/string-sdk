@@ -1,5 +1,5 @@
 import { Services } from "../../services";
-import type { Config, StringIframe } from "../../types";
+import type { Config, IframeStyle, StringIframe } from "../../types";
 import { createIframeEventListener, createIframeEventSender } from "../common/index";
 import { createEventHandlers } from "./eventHandlers";
 
@@ -11,7 +11,6 @@ export function createPaymentIframe(config: Config, services: Services): StringI
     element.style.width = "100vh";
     element.style.height = "900px";
     element.style.overflow = "none";
-    element.src = config.paymentIframeUrl;
 
     /* An iframe to sdk events protocol is composed of 3 components:
      * sender: send events to the iframe
@@ -29,9 +28,11 @@ export function createPaymentIframe(config: Config, services: Services): StringI
         while (container.firstChild) {
             container.removeChild(container.firstChild);
         }
+        eventListener.startListening();
+
+        element.src = config.paymentIframeUrl;
 
         container.appendChild(element);
-        eventListener.startListening();
 
         return element;
     }
@@ -51,8 +52,7 @@ export function createPaymentIframe(config: Config, services: Services): StringI
         eventSender.sendData("submit_card", {});
     }
 
-    async function setStyle(style: any) {
-        // TODOX: define style interface to pass to the iframe
+    async function setStyle(style: IframeStyle) {
         eventSender.sendData("set_style", style);
     }
 

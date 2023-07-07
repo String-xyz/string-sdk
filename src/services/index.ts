@@ -7,7 +7,7 @@ import { createWalletService } from "./wallet.service";
 import { createEventsService } from "./events.service";
 
 export function createServices(config: Config): Services {
-    const apiClient = createApiClient(config.apiUrl, config.apiKeyPublic);
+    const apiClient = createApiClient(config.apiUrl, config.apiKey);
 
     const events = createEventsService();
     const locationService = createLocationService(config);

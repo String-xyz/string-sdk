@@ -8,7 +8,7 @@ export function init(options: UserOptions): StringPay {
     const config = createConfig(options);
 
     // run some checks
-    if (!options.apiKeyPublic || !options.apiKeyPublic.startsWith("str.")) throw new Error("Invalid or missing API Key");
+    if (!options.apiKey || !options.apiKey.startsWith("str.")) throw new Error("Invalid or missing API Key");
 
     const services = createServices(config);
 

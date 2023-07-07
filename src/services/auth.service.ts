@@ -55,7 +55,7 @@ export function createAuthService({ apiClient, locationService, bypassDeviceChec
 
             return signature;
         } catch (error) {
-            console.log("SDK :: Wallet signature error: ", error);
+            console.error("SDK :: Wallet signature error: ", error);
         }
     };
 

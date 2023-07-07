@@ -169,7 +169,7 @@ export interface QuoteService {
 
 export interface StringPay {
     loadIframe(payload: StringPayload): Promise<HTMLIFrameElement>;
-    setStyle(style: any): Promise<void>;
+    setStyle(style: IframeStyle): Promise<void>;
     authorizeUser(): Promise<User>;
     updateUserName(userId: string, firstName: string, lastName: string): Promise<User>;
     verifyEmail(userId: string, email: string): Promise<void>;
@@ -209,7 +209,7 @@ export interface StringIframe {
     load: (payload: StringPayload) => HTMLIFrameElement;
     destroy: () => void;
     submitCard: () => Promise<void>;
-    setStyle: (style: any) => void;
+    setStyle: (style: IframeStyle) => void;
 }
 
 export interface IframeEventSender {
@@ -238,7 +238,7 @@ export interface AuthServiceParams {
 
 /* Extended config with user options */
 export interface Config extends DefaultConfig {
-    apiKeyPublic: string;
+    apiKey: string;
 }
 
 export type DefaultConfig = {
@@ -251,7 +251,7 @@ export type DefaultConfig = {
 
 export interface UserOptions {
     env: Environment;
-    apiKeyPublic: string;
+    apiKey: string;
     bypassDeviceCheck?: boolean;
 }
 
@@ -270,6 +270,18 @@ export interface StringPayload {
     contractParameters: string[];
     txValue: string;
     gasLimit?: string;
+}
+
+export interface IframeStyle {
+    PCIInnerElements?: {
+        base?: object;
+        hover?: object;
+        focus?: object;
+        valid?: object;
+        invalid?: object;
+        placeholder?: object;
+        autofill?: object;
+    };
 }
 
 export type Environment = "PROD" | "SANDBOX" | "DEV" | "LOCAL";

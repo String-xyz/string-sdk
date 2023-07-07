@@ -42,7 +42,7 @@ export function createConfig(options: UserOptions): Config {
 
     const config: Config = {
         ...defaultConfig,
-        apiKeyPublic: options.apiKeyPublic,
+        apiKey: options.apiKey,
         bypassDeviceCheck: options.bypassDeviceCheck || false,
     };
 

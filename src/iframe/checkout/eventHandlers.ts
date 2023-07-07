@@ -27,15 +27,13 @@ export function createEventHandlers(
     };
 
     async function onIframeReady(reqEvent: IframeEvent): Promise<IframeEvent> {
-        console.log(">> Ready event: ", reqEvent);
-
         const resEvent: IframeEvent = { eventName: "res_" + reqEvent.eventName };
 
         try {
             const user = await services.auth.fetchLoggedInUser(payload.userAddress);
             const iframePayload = createCheckoutIframePayload(payload, user);
 
-            events.propagate(events.IFRAME_LOADED, "string-payment-iframe");
+            events.propagate(events.IFRAME_LOADED, "string-payment-frame");
 
             resEvent.data = iframePayload;
         } catch (e: any) {

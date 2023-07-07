@@ -7,7 +7,7 @@ export function createIframe(config: Config, services: Services): StringIframe {
     const checkoutIframeElement = document.querySelector(".string-checkout-frame");
     const paymentIframeElement = document.querySelector(".string-payment-frame");
 
-    if (!checkoutIframeElement && !paymentIframeElement) throw new Error(".string-checkout-frame or .string-payment-frame has not been found id dom");
+    if (!checkoutIframeElement && !paymentIframeElement) throw new Error("Neither .string-checkout-frame nor .string-payment-frame has been found in the DOM");
 
     if (checkoutIframeElement) {
         const stringIframe = createCheckoutIframe(config, services);

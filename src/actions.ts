@@ -1,15 +1,17 @@
-import type { Config, StringPay, StringIframe, ExecutionRequest, Quote, TransactionRequest, StringPayload, User, UserUpdate } from "./types";
+import type { Config, StringPay, StringIframe, ExecutionRequest, Quote, TransactionRequest, StringPayload, User, IframeStyle } from "./types";
 import type { Services } from "./services/index";
 
 export function createStringPay(iframe: StringIframe, config: Config, services: Services): StringPay {
     const events = services.events;
 
+    const DEFAULT_GAS_LIMIT = "800000";
+
     async function loadIframe(payload: StringPayload) {
         return iframe.load(payload);
     }
 
-    async function setStyle(style: any) {
-        iframe.setStyle(style);
+    async function setStyle(style: IframeStyle) {
+        return iframe.setStyle(style);
     }
 
     async function authorizeUser(): Promise<User> {
@@ -37,6 +39,8 @@ export function createStringPay(iframe: StringIframe, config: Config, services: 
 
     async function getQuote(payload: StringPayload): Promise<Quote> {
         const executionRequest = <ExecutionRequest>payload;
+        executionRequest.gasLimit = executionRequest.gasLimit || DEFAULT_GAS_LIMIT;
+
         return services.quote.getQuote(executionRequest);
     }
 
@@ -68,6 +72,8 @@ export function createStringPay(iframe: StringIframe, config: Config, services: 
 
     function subscribeToQuote(payload: StringPayload, callback: (quote: Quote) => void) {
         const executionRequest = <ExecutionRequest>payload;
+        executionRequest.gasLimit = executionRequest.gasLimit || DEFAULT_GAS_LIMIT;
+
         services.quote.startQuote(executionRequest, callback);
     }
 
