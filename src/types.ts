@@ -252,6 +252,7 @@ export type DefaultConfig = {
 export interface UserOptions {
     env: Environment;
     apiKey: string;
+    setStyle?: IframeStyle;
     bypassDeviceCheck?: boolean;
 }
 

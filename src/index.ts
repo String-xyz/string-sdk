@@ -1,4 +1,4 @@
-import { UserOptions, StringPay } from "./types";
+import { UserOptions, StringPay, IframeStyle } from "./types";
 import { createServices } from "./services";
 import { createIframe } from "./iframe";
 import { createStringPay } from "./actions";
@@ -17,7 +17,18 @@ export function init(options: UserOptions): StringPay {
         services.location.getFPInstance().catch((e) => console.debug("getFPInstance error: ", e));
     }
 
-    const iframe = createIframe(config, services);
+    // If the user has passed a style, fail fast if it's invalid
+    let styles: IframeStyle | string | undefined = options.setStyle;
+    if (styles) {
+        try {
+            styles = encodeURIComponent(JSON.stringify(styles));
+        } catch (e) {
+            console.error("Invalid String iframe style object");
+            styles = undefined;
+        }
+    }
+
+    const iframe = createIframe(config, services, styles);
 
     const actions = createStringPay(iframe, config, services);
 

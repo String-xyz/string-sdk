@@ -3,7 +3,7 @@ import type { Config, IframeStyle, StringIframe } from "../../types";
 import { createIframeEventListener, createIframeEventSender } from "../common/index";
 import { createEventHandlers } from "./eventHandlers";
 
-export function createPaymentIframe(config: Config, services: Services): StringIframe {
+export function createPaymentIframe(config: Config, services: Services, styles?: string): StringIframe {
     const eventChannel = "STRING_PAY";
 
     const container = document.querySelector(".string-payment-frame");
@@ -30,7 +30,11 @@ export function createPaymentIframe(config: Config, services: Services): StringI
         }
         eventListener.startListening();
 
-        element.src = config.paymentIframeUrl;
+        if (styles) {
+            element.src = config.paymentIframeUrl + "&setStyle=" + styles;
+        } else {
+            element.src = config.paymentIframeUrl;
+        }
 
         container.appendChild(element);
 

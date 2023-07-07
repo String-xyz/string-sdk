@@ -3,7 +3,7 @@ import type { Config, StringIframe } from "../types";
 import { createCheckoutIframe } from "./checkout";
 import { createPaymentIframe } from "./payment";
 
-export function createIframe(config: Config, services: Services): StringIframe {
+export function createIframe(config: Config, services: Services, styles?: string): StringIframe {
     const checkoutIframeElement = document.querySelector(".string-checkout-frame");
     const paymentIframeElement = document.querySelector(".string-payment-frame");
 
@@ -14,7 +14,7 @@ export function createIframe(config: Config, services: Services): StringIframe {
         return stringIframe;
     }
 
-    const stringIframe = createPaymentIframe(config, services);
+    const stringIframe = createPaymentIframe(config, services, styles);
     return stringIframe;
 }
 
