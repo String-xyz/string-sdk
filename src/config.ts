@@ -1,35 +1,34 @@
 import { Config, DefaultConfig, Environment, UserOptions } from "./types";
-
 const commonConfig = {
-    bypassDeviceCheck: false,
-    analyticsSubdomainUrl: "https://metrics.string.xyz",
-    analyticsPublicKey: "nmYB7RHc1vaGnBNRwtbe",
+    bypassDeviceCheck: BYPASS_DEVICE_CHECK,
+    analyticsSubdomainUrl: ANALYTICS_SUBDOMAIN_URL,
+    analyticsPublicKey: ANALYTICS_LIB_PK,
 };
 
 const defaultConfigs: Record<Environment, DefaultConfig> = {
     PROD: {
         ...commonConfig,
-        apiUrl: "https://api.string-api.xyz",
-        checkoutIframeUrl: "https://iframe.string-api.xyz",
-        paymentIframeUrl: "https://payment-iframe.string-api.xyz/?env=prod&appType=web",
+        apiUrl: PROD_API_URL,
+        checkoutIframeUrl: PROD_CHECKOUT_IFRAME_URL,
+        paymentIframeUrl: PROD_DIRECT_IFRAME_URL,
     },
     SANDBOX: {
         ...commonConfig,
-        apiUrl: "https://api.sandbox.string-api.xyz",
-        checkoutIframeUrl: "https://iframe-app.dev.string-api.xyz",
-        paymentIframeUrl: "https://payment-iframe.string-api.xyz/?env=dev&appType=web",
+        apiUrl: SBOX_API_URL,
+        checkoutIframeUrl: SBOX_CHECKOUT_IFRAME_URL,
+        paymentIframeUrl: SBOX_DIRECT_IFRAME_URL,
     },
     DEV: {
         ...commonConfig,
-        apiUrl: "https://string-api.dev.string-api.xyz",
-        checkoutIframeUrl: "https://iframe-app.dev.string-api.xyz",
-        paymentIframeUrl: "https://payment-iframe.string-api.xyz/?env=dev&appType=web",
+        apiUrl: DEV_API_URL,
+        checkoutIframeUrl: DEV_CHECKOUT_IFRAME_URL,
+        paymentIframeUrl: DEV_DIRECT_IFRAME_URL,
     },
     LOCAL: {
         ...commonConfig,
-        apiUrl: "http://localhost:5555",
-        checkoutIframeUrl: "http://localhost:4040",
-        paymentIframeUrl: "http://localhost:4041?env=dev&appType=web",
+        apiUrl: LOCAL_API_URL,
+        checkoutIframeUrl: LOCAL_CHECKOUT_IFRAME_URL,
+        paymentIframeUrl: LOCAL_DIRECT_IFRAME_URL,
     },
 };
 
