@@ -1,34 +1,37 @@
 import { Config, DefaultConfig, Environment, UserOptions } from "./types";
+import dotenv from "dotenv";
+dotenv.config();
+
 const commonConfig = {
-    bypassDeviceCheck: BYPASS_DEVICE_CHECK,
-    analyticsSubdomainUrl: ANALYTICS_SUBDOMAIN_URL,
-    analyticsPublicKey: ANALYTICS_LIB_PK,
+    bypassDeviceCheck: process.env.BYPASS_DEVICE_CHECK === "true" ? true : false,
+    analyticsSubdomainUrl: process.env.ANALYTICS_SUBDOMAIN_URL || "",
+    analyticsPublicKey: process.env.ANALYTICS_LIB_PK || "",
 };
 
 const defaultConfigs: Record<Environment, DefaultConfig> = {
     PROD: {
         ...commonConfig,
-        apiUrl: PROD_API_URL,
-        checkoutIframeUrl: PROD_CHECKOUT_IFRAME_URL,
-        paymentIframeUrl: PROD_DIRECT_IFRAME_URL,
+        apiUrl: process.env.PROD_API_URL || "",
+        checkoutIframeUrl: process.env.PROD_CHECKOUT_IFRAME_URL || "",
+        paymentIframeUrl: process.env.PROD_DIRECT_IFRAME_URL || "",
     },
     SANDBOX: {
         ...commonConfig,
-        apiUrl: SBOX_API_URL,
-        checkoutIframeUrl: SBOX_CHECKOUT_IFRAME_URL,
-        paymentIframeUrl: SBOX_DIRECT_IFRAME_URL,
+        apiUrl: process.env.SBOX_API_URL || "",
+        checkoutIframeUrl: process.env.SBOX_CHECKOUT_IFRAME_URL || "",
+        paymentIframeUrl: process.env.SBOX_DIRECT_IFRAME_URL || "",
     },
     DEV: {
         ...commonConfig,
-        apiUrl: DEV_API_URL,
-        checkoutIframeUrl: DEV_CHECKOUT_IFRAME_URL,
-        paymentIframeUrl: DEV_DIRECT_IFRAME_URL,
+        apiUrl: process.env.DEV_API_URL || "",
+        checkoutIframeUrl: process.env.DEV_CHECKOUT_IFRAME_URL || "",
+        paymentIframeUrl: process.env.DEV_DIRECT_IFRAME_URL || "",
     },
     LOCAL: {
         ...commonConfig,
-        apiUrl: LOCAL_API_URL,
-        checkoutIframeUrl: LOCAL_CHECKOUT_IFRAME_URL,
-        paymentIframeUrl: LOCAL_DIRECT_IFRAME_URL,
+        apiUrl: process.env.LOCAL_API_URL || "",
+        checkoutIframeUrl: process.env.LOCAL_CHECKOUT_IFRAME_URL || "",
+        paymentIframeUrl: process.env.LOCAL_DIRECT_IFRAME_URL || "",
     },
 };
 
