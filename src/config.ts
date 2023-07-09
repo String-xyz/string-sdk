@@ -1,6 +1,4 @@
 import { Config, DefaultConfig, Environment, UserOptions } from "./types";
-import dotenv from "dotenv";
-dotenv.config();
 
 const commonConfig = {
     bypassDeviceCheck: process.env.BYPASS_DEVICE_CHECK === "true" ? true : false,
