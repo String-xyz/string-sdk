@@ -17,10 +17,18 @@ npm i @stringpay/sdk
 yarn @stringpay/sdk
 ```
 
-Load the SDK's script on your app like so:
+Load the SDK's script in the root of your app like so:
 
 ```HTML
-<script src="../node_modules/@stringpay/sdk/dist/stringpay-v0.0.1.min.js"></script>
+<script src="../node_modules/@stringpay/sdk/dist/stringpay-v0.2.0.min.js"></script>
+```
+
+Initialize the SDK in onMount (client side):
+```JS
+window.StringPay.init({
+	env: "LOCAL", // Can be PROD, SANDBOX, DEV, or LOCAL
+	publicKey: apiKey,
+});
 ```
 
 With this in place, add your `String Checkout` button anywhere you'd like:

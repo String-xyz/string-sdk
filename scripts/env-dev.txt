@@ -1,0 +1,4 @@
+VITE_IFRAME_URL=https://iframe-app.dev.string-api.xyz
+VITE_API_URL=https://string-api.dev.string-api.xyz
+
+VITE_ANALYTICS_LIB_PK=
