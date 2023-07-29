@@ -23,11 +23,13 @@
 		currency: "AVAX",
 		chainID: 43113,
 		userAddress: $signerAddress,
-		contractAddress: "0xea1ffe2cf6630a20e1ba397e95358daf362c8781",
-		contractFunction: "mintTo(address)",
-		contractReturn: "uint256",
-		contractParameters: [$signerAddress],
-		txValue: "0.08 eth",
+		actions: [{
+			contractAddress: "0xea1ffe2cf6630a20e1ba397e95358daf362c8781",
+			contractFunction: "mintTo(address)",
+			contractReturn: "uint256",
+			contractParameters: [$signerAddress],
+			txValue: "0.08 eth"
+		}],
 	};
 
 	$: disabled = !$signerAddress;
@@ -43,7 +45,7 @@
 		});
 
 		window.StringPay.onTxSuccess = (req: StringPayload, tx: TransactionResponse) => {
-			console.log(`[String Pay] Transaction Success for ${req.assetName}: ${tx.txUrl}`);
+			console.log(`[String Pay] Transaction Success for ${req.assetName}: ${tx.txUrls}`);
 		};
 
 		window.StringPay.onTxError = (req: StringPayload, txErr: any) => {

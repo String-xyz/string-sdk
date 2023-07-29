@@ -1,5 +1,5 @@
 import { createServices, type Services } from "./services";
-import type { TransactionResponse } from "./services/apiClient.service";
+import type { ContractAction, TransactionResponse } from "./services/apiClient.service";
 
 export interface StringPayload {
     assetName: string;
@@ -10,12 +10,7 @@ export interface StringPayload {
     imageAlt?: string;
     chainID: number;
     userAddress: string;
-    contractAddress: string;
-    contractFunction: string;
-    contractReturn: string;
-    contractParameters: string[];
-    txValue: string;
-    gasLimit?: string;
+    actions: ContractAction[];
 }
 
 export type StringSDKEnvironment = "PROD" | "SANDBOX" | "DEV" | "LOCAL";
@@ -103,6 +98,15 @@ export class StringPay {
         if (!this._IFRAME_URL) return err("IFRAME_URL not specified. Did you call init()?");
         if (!this.#services) return err("Services not initialized. Did you call init()?");
 
+        
+        // Validate actions and set gasLimit if not specified
+        if (!payload.actions || payload.actions.length === 0) return err("No actions specified");
+        payload.actions.forEach((action) => {
+            if (action.gasLimit === undefined || action.gasLimit === null) {
+                action.gasLimit = "800000";
+            }
+        });
+
         // Set payload
         this.payload = payload;
 
@@ -116,9 +120,6 @@ export class StringPay {
         container.appendChild(iframe);
         this.container = container;
         this.frame = iframe;
-
-        // set the default gas limit
-        this.payload.gasLimit = "8000000"; // TODO: Do we want this value to change dynamically?
 
         this.#services.eventsService.unregisterEvents();
         this.#services.eventsService.registerEvents();
